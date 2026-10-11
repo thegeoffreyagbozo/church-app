@@ -14,8 +14,8 @@ enum AppRole {
   const AppRole(this.wireValue);
   final String wireValue;
 
-  static AppRole fromWire(String v) =>
-      AppRole.values.firstWhere((r) => r.wireValue == v, orElse: () => AppRole.member);
+  static AppRole fromWire(String v) => AppRole.values
+      .firstWhere((r) => r.wireValue == v, orElse: () => AppRole.member);
 }
 
 /// RBAC permissions (ADR 0003). Stored in `role_permissions.permission`; checked by the
@@ -62,8 +62,10 @@ enum HymnAssetKind {
   const HymnAssetKind(this.wireValue);
   final String wireValue;
 
-  static HymnAssetKind fromWire(String v) => HymnAssetKind.values
-      .firstWhere((k) => k.wireValue == v, orElse: () => HymnAssetKind.sheetMusicPdf);
+  static HymnAssetKind fromWire(String v) => HymnAssetKind.values.firstWhere(
+        (k) => k.wireValue == v,
+        orElse: () => HymnAssetKind.sheetMusicPdf,
+      );
 }
 
 /// Which hymn presentation the user sees (client-only; persisted preference).
