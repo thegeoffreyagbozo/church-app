@@ -9,6 +9,13 @@ config/*.local.json
 !.env.example
 !*.example.json
 
+# ─── Per-church configs & branding (ADR 0007) ─────────────────────────────────
+# Real church identity, backend config, and branding stay on the build machine only.
+# Only the placeholder template (and a README) are committed.
+churches/*
+!churches/example/
+!churches/README.md
+
 # ─── Dart / Flutter ───────────────────────────────────────────────────────────
 .dart_tool/
 .flutter-plugins
