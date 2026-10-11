@@ -12,7 +12,10 @@ migrations/
   0001_auth_core.sql     extensions, RBAC (user_roles/role_permissions/authorize/hook),
                          church singleton, profiles, set_updated_at, tombstones
   0002_hymnal.sql        hymnals, categories, hymns, sections, assets, FTS, storage bucket
-seed.sql                 sample public-domain hymns (dev/CI)
+  0003_privileges_hardening.sql
+                         service-role grants, explicit client grants, function hardening
+  0004_readings.sql      readings + reading_parts (responsive readings, creeds, covenants)
+seed.sql                 sample public-domain hymns and readings (dev/CI)
 functions/
   health/                public keepalive endpoint (DB touch) — pinged by CI daily
 .env.example             Edge Function secret names (copy → supabase/.env, git-ignored)

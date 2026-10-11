@@ -68,3 +68,38 @@ enum HymnAssetKind {
 
 /// Which hymn presentation the user sees (client-only; persisted preference).
 enum HymnViewMode { ordinary, chorister }
+
+/// Kind of reading (ADR 0008). Mirrors the `reading_kind` Postgres enum.
+enum ReadingKind {
+  responsiveReading('responsive_reading'),
+  callToWorship('call_to_worship'),
+  benediction('benediction'),
+  creed('creed'),
+  covenant('covenant');
+
+  const ReadingKind(this.wireValue);
+  final String wireValue;
+
+  static ReadingKind fromWire(String v) => ReadingKind.values.firstWhere(
+        (k) => k.wireValue == v,
+        orElse: () => ReadingKind.responsiveReading,
+      );
+}
+
+/// Who reads a part of a reading aloud (ADR 0008). Mirrors the `reading_speaker` Postgres
+/// enum; a null speaker means it doesn't matter.
+enum ReadingSpeaker {
+  leader('leader'),
+  people('people'),
+  all('all');
+
+  const ReadingSpeaker(this.wireValue);
+  final String wireValue;
+
+  static ReadingSpeaker? fromWire(String? v) {
+    for (final s in ReadingSpeaker.values) {
+      if (s.wireValue == v) return s;
+    }
+    return null;
+  }
+}
