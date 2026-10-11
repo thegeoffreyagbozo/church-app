@@ -1,0 +1,38 @@
+# Melos drives cross-package tasks across the Dart side of the monorepo.
+# Run: `dart pub global activate melos` once, then `melos <script>` from the repo root.
+name: church_app
+
+packages:
+  - apps/**
+  - packages/**
+
+scripts:
+  analyze:
+    description: Static analysis across all Dart packages.
+    exec: dart analyze --fatal-infos
+
+  format:
+    description: Verify formatting (fails if any file would change).
+    exec: dart format --set-exit-if-changed .
+
+  format:fix:
+    description: Apply formatting.
+    exec: dart format .
+
+  gen:
+    description: Run code generation (freezed / drift / riverpod / json_serializable).
+    exec: dart run build_runner build --delete-conflicting-outputs
+    packageFilters:
+      dependsOn: build_runner
+
+  gen:watch:
+    description: Code generation in watch mode (daily dev loop).
+    exec: dart run build_runner watch --delete-conflicting-outputs
+    packageFilters:
+      dependsOn: build_runner
+
+  test:
+    description: Run tests (incl. widget + golden) across packages that have them.
+    exec: flutter test
+    packageFilters:
+      dirExists: test

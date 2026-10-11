@@ -1,0 +1,7 @@
+{
+  "_comment": "Copy to config/dev.json and config/prod.json (both git-ignored). PUBLIC values only — never put the Supabase service-role key or any secret here (ADR 0006). The Flutter app reads these via: flutter run --dart-define-from-file=config/dev.json",
+  "SUPABASE_URL": "https://YOUR-PROJECT-ref.supabase.co",
+  "SUPABASE_ANON_KEY": "your-public-anon-key",
+  "PAYSTACK_PUBLIC_KEY": "pk_test_xxx_public_key_only",
+  "APP_ENV": "dev"
+}

@@ -1,0 +1,17 @@
+# Root of the Dart pub workspace (Dart SDK >= 3.6).
+# Member packages resolve dependencies together; see apps/mobile and packages/shared.
+# Cross-package scripts (analyze/test/format) are run via Melos — see melos.yaml.
+name: church_app_workspace
+publish_to: none
+
+environment:
+  sdk: ^3.6.0
+
+# Dart pub workspaces: shared dependency resolution across member packages.
+# apps/mobile joins this list when the Flutter app spine lands (see docs/ARCHITECTURE.md
+# → Implementation steps, step 5).
+workspace:
+  - packages/shared
+
+dev_dependencies:
+  melos: ^6.3.2

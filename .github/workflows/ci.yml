@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "claude/**"]
+  pull_request:
+    branches: [main]
+
+# Each job activates once its part of the monorepo exists, so CI is green at the
+# foundation stage and lights up automatically as the app / admin land.
+jobs:
+  backend:
+    name: Supabase migrations + seed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start local Supabase stack
+        run: supabase start
+      - name: Apply migrations + seed (validates they load cleanly)
+        run: supabase db reset   # applies all migrations then runs seed.sql
+      - name: RLS tests (pgTAP) — placeholder until supabase/tests/ exists
+        run: |
+          if [ -d supabase/tests ]; then supabase test db; else echo "no pgTAP tests yet"; fi
+
+  mobile:
+    name: Flutter analyze / format / test
+    runs-on: ubuntu-latest
+    if: ${{ hashFiles('apps/mobile/pubspec.yaml') != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+        working-directory: apps/mobile
+      - name: Code generation (freezed/drift/riverpod)
+        run: dart run build_runner build --delete-conflicting-outputs
+        working-directory: apps/mobile
+      - run: dart format --set-exit-if-changed .
+        working-directory: apps/mobile
+      - run: flutter analyze
+        working-directory: apps/mobile
+      - run: flutter test
+        working-directory: apps/mobile
+
+  admin:
+    name: Admin lint / typecheck / build
+    runs-on: ubuntu-latest
+    if: ${{ hashFiles('admin/package.json') != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: admin/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+        working-directory: admin
+      - run: pnpm run lint
+        working-directory: admin
+      - run: pnpm run build
+        working-directory: admin

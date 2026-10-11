@@ -1,0 +1,51 @@
+name: Backup
+
+# Nightly logical backup of the database, gpg-encrypted, pushed to a private Cloudflare R2
+# bucket (S3-compatible). The free tier has NO managed backups, so this matters most once
+# giving/pledge data exists. See docs/ARCHITECTURE.md → operational must-dos.
+#
+# Required repo secrets:
+#   SUPABASE_DB_URL        postgresql://...:6543/postgres (pooled or direct connection string)
+#   BACKUP_GPG_PASSPHRASE  symmetric passphrase for encryption
+#   R2_S3_ENDPOINT         https://<account>.r2.cloudflarestorage.com
+#   R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY / R2_BUCKET
+# NOTE: scheduled workflows only run from the default branch, so this activates after merge.
+
+on:
+  schedule:
+    - cron: "40 2 * * *"   # 02:40 UTC daily
+  workflow_dispatch: {}
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Guard — require secrets
+        run: |
+          if [ -z "${{ secrets.SUPABASE_DB_URL }}" ]; then
+            echo "Backup secrets not configured yet — skipping."; exit 0
+          fi
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Dump database
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          ts=$(date -u +%Y%m%dT%H%M%SZ)
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f "backup-$ts.sql"
+          echo "DUMP=backup-$ts.sql" >> "$GITHUB_ENV"
+      - name: Encrypt
+        env:
+          BACKUP_GPG_PASSPHRASE: ${{ secrets.BACKUP_GPG_PASSPHRASE }}
+        run: |
+          gpg --batch --yes --passphrase "$BACKUP_GPG_PASSPHRASE" \
+              --symmetric --cipher-algo AES256 "$DUMP"
+      - name: Upload to R2 (S3-compatible)
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+        run: |
+          aws s3 cp "$DUMP.gpg" "s3://${{ secrets.R2_BUCKET }}/db/$DUMP.gpg" \
+            --endpoint-url "${{ secrets.R2_S3_ENDPOINT }}"

@@ -1,0 +1,39 @@
+# Supabase local/project configuration.
+# Docs: https://supabase.com/docs/guides/local-development/cli/config
+project_id = "church-app"
+
+[api]
+enabled = true
+schemas = ["public"]
+extra_search_path = ["public"]
+max_rows = 1000
+
+[db]
+# Local Postgres major version; match your cloud project.
+major_version = 15
+
+[auth]
+# Anonymous browsing is the default experience (ADR 0003). A real account is only required
+# for giving/pledges/notes-sync, created by upgrading the anonymous user in place.
+enable_anonymous_sign_ins = true
+# Phone is an identifier but stays UNVERIFIED (no SMS cost) until the giving slice.
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false   # email is optional; no mandatory confirmation in early slices
+
+# Inject the user's roles into the JWT so RLS reads a claim, not a table (ADR 0003).
+[auth.hook.custom_access_token]
+enabled = true
+uri = "pg-functions://postgres/public/custom_access_token_hook"
+
+# ── Edge Functions ────────────────────────────────────────────────────────────
+# The keepalive/health endpoint is public (no JWT) so an external cron can ping it.
+[functions.health]
+verify_jwt = false
+
+# The Paystack webhook (later slice) must also be public — it authenticates itself via
+# an HMAC signature, not a Supabase JWT. Declared here now so the contract is visible.
+[functions.paystack-webhook]
+verify_jwt = false
