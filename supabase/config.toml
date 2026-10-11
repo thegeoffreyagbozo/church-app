@@ -33,7 +33,6 @@ uri = "pg-functions://postgres/public/custom_access_token_hook"
 [functions.health]
 verify_jwt = false
 
-# The Paystack webhook (later slice) must also be public — it authenticates itself via
-# an HMAC signature, not a Supabase JWT. Declared here now so the contract is visible.
-[functions.paystack-webhook]
-verify_jwt = false
+# NOTE: the Paystack webhook function (giving slice, v1.3.0) will be declared here with
+# `verify_jwt = false` once supabase/functions/paystack-webhook/ exists. Declaring a function
+# in config.toml before its index.ts exists makes `supabase start` fail, so it is added then.
