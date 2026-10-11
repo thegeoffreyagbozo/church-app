@@ -5,12 +5,12 @@ project_id = "church-app"
 [api]
 enabled = true
 schemas = ["public"]
-extra_search_path = ["public"]
+extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
 [db]
-# Local Postgres major version; match your cloud project.
-major_version = 15
+# Local Postgres major version; match your cloud project (new Supabase projects run 17).
+major_version = 17
 
 [auth]
 # Anonymous browsing is the default experience (ADR 0003). A real account is only required
