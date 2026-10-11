@@ -8,6 +8,9 @@
 create extension if not exists pgcrypto with schema extensions;   -- gen_random_uuid()
 create extension if not exists pg_trgm  with schema extensions;   -- fuzzy search
 create extension if not exists citext   with schema extensions;   -- case-insensitive email
+-- Extension objects live in the `extensions` schema: always schema-qualify them
+-- (e.g. extensions.citext). `supabase db push` to a cloud project runs without
+-- `extensions` on the search_path, unlike the local stack, so bare names fail there.
 
 -- ── Shared helpers ──────────────────────────────────────────────────────────--
 -- Bumps updated_at on every UPDATE (so a soft-delete also advances the sync cursor).
@@ -151,7 +154,7 @@ create table public.church (
   logo_path  text,
   banner_path text,
   about      text,
-  email      citext,
+  email      extensions.citext,
   phone      text,
   address    text,
   website    text,
@@ -186,7 +189,7 @@ create table public.profiles (
   full_name         text not null default '',
   phone             text,
   phone_verified_at timestamptz,
-  email             citext,
+  email             extensions.citext,
   avatar_path       text,
   preferred_language text,
   is_choir_member   boolean not null default false,  -- seeds the default hymnal view
