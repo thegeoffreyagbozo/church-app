@@ -1,6 +1,7 @@
 /// Canonical enums shared across the app. Each mirrors a type or check-constrained column
 /// in the Supabase schema (see supabase/migrations). `wireValue` is the exact string stored
 /// in Postgres — never rename without a matching migration.
+library;
 
 /// RBAC roles (ADR 0003). Stored in `user_roles.role` and injected into the JWT.
 enum AppRole {
