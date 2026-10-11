@@ -8,8 +8,25 @@ on:
 
 # The mobile (Flutter) and admin (React) jobs are added to this file when those packages
 # land (see docs/ARCHITECTURE.md → Implementation steps 5 & 7). Until then CI validates the
-# backend, which is the part that exists.
+# backend and the Dart packages, the parts that exist.
 jobs:
+  dart:
+    name: Dart packages (analyze, format, test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.12.2   # matches the SDK that wrote pubspec.lock
+      - run: dart pub get
+      - name: Analyze
+        run: dart analyze --fatal-infos packages
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed packages
+      - name: Test
+        run: dart test
+        working-directory: packages/content_import
+
   backend:
     name: Supabase migrations + seed
     runs-on: ubuntu-latest
@@ -23,6 +40,19 @@ jobs:
         run: supabase start
       - name: Apply migrations + seed (validates they load cleanly)
         run: supabase db reset   # applies all migrations then runs seed.sql
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.12.2
+      - name: Import a sample hymn book twice and check the result
+        run: |
+          dart pub get
+          (cd packages/content_import && dart run content_import \
+            test/fixtures/sample_book.txt --out /tmp/sample_book.sql --year 2026)
+          db=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          # The second import must update the same rows, not duplicate them.
+          psql "$db" -v ON_ERROR_STOP=1 -q -f /tmp/sample_book.sql
+          psql "$db" -v ON_ERROR_STOP=1 -q -f /tmp/sample_book.sql
+          psql "$db" -v ON_ERROR_STOP=1 -q -f packages/content_import/test/fixtures/expect_sample_book.sql
       - name: RLS tests (pgTAP) — placeholder until supabase/tests/ exists
         run: |
           if [ -d supabase/tests ]; then supabase test db; else echo "no pgTAP tests yet"; fi
