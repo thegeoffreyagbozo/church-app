@@ -24,6 +24,7 @@ a cooperative focus mode, notes, and a Bible.
 ```
 apps/mobile/       Flutter app (iOS + Android)
 packages/shared/   Shared Dart models, enums, DTOs (mobile-only)
+packages/content_import/  Imports a transcribed hymn book into Supabase (ADR 0008)
 admin/             React + TS admin SPA (own package.json)
 supabase/          config.toml · migrations/ · functions/ · seed.sql
 config/            per-env public config (JSON; git-ignored except example.json)
