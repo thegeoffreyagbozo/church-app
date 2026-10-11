@@ -1,6 +1,7 @@
 # Church App
 
-A mobile-first app for a church in Ghana — **offline-first**, built in small shippable slices.
+A mobile-first, **offline-first** app for churches in Ghana, built in small shippable slices. One
+codebase is built and deployed separately for each church ([ADR 0007](docs/decisions/0007-white-label-builds.md)).
 **v1.0.0 is an offline hymnal**; later slices add events, media, giving/pledges, notifications,
 a cooperative focus mode, notes, and a Bible.
 

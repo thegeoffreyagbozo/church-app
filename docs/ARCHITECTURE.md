@@ -329,6 +329,11 @@ used as an editable **profile/settings singleton**. We will **not** thread `chur
 every table in v1 (that overhead buys nothing for one church, and half-applying it is the worst
 option). True multi-tenant / white-label becomes a dedicated future migration if ever needed.
 
+> **Update (ADR 0007):** the product is now white-label without multi-tenancy: one codebase,
+> built and deployed separately for each church, each with its own Supabase project. The
+> single-church model above holds within each deployment. See
+> [`decisions/0007-white-label-builds.md`](decisions/0007-white-label-builds.md).
+
 ## Decision-making protocol (you stay in control)
 
 To answer "will an agent assume things for me?": **no silent assumptions.** Decisions are sorted
