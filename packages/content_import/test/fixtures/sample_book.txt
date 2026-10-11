@@ -1,0 +1,97 @@
+# A public-domain sample in the transcription format. CI imports it into a fresh database
+# twice and checks the result with expect_sample_book.sql.
+
+SECTION Service Music
+
+HYMN
+Title: Doxology
+Tune: Old Hundredth
+Words: Thomas Ken, 1637-1711
+Music: Louis Bourgeois, c. 1510-c. 1561
+
+Praise God, from whom all blessings flow;
+Praise Him, all creatures here below;
+Praise Him above, ye heav'nly host;
+Praise Father, Son, and Holy Ghost. Amen.
+
+TOPIC Communion
+
+HYMN
+Title: Let Us Break Bread Together
+Words: Traditional
+
+1
+Let us break bread together on our knees.
+
+
+SECTION Hymns
+
+HYMN 1
+Title: Rock of Ages
+Words: Augustus M. Toplady, 1740-1778
+
+1
+Rock of Ages, cleft for me, Let me hide myself in Thee;
+
+2
+Not the labours of my hands Can fulfil Thy law's demands;
+
+HYMN 2
+Title: A Protected Hymn
+Words: A. Living Writer, 1950-
+
+1
+These words are still under copyright.
+
+
+SECTION Supplementary Hymns
+
+HYMN 001
+Title: Blessed Assurance
+Words: Fanny J. Crosby, 1820-1915
+
+1
+Blessed assurance, Jesus is mine! O what a foretaste of glory divine!
+
+CHORUS
+This is my story, this is my song, Praising my Saviour all the day long.
+
+
+READING 11
+Title: The Lord Is My Shepherd
+Scripture: Psalm 23
+
+Leader: The Lord is my shepherd; I shall not want.
+People: He maketh me to lie down in green pastures.
+Ref: Psalm 23:1-2
+All: Surely goodness and mercy shall follow me all the days of my life.
+
+READING 12
+Title: Benedictions
+Kind: benedictions
+
+1. The Lord bless thee, and keep thee.
+Ref: Numbers 6:24
+
+2. The grace of the Lord Jesus Christ be with you all. Amen.
+Ref: II Corinthians 13:14
+
+READING 13
+Title: Unfinished Reading
+Status: draft
+
+Leader: Only the first line so far.
+
+CREED
+Title: The Apostles' Creed
+
+I believe in God the Father Almighty, maker of heaven and earth.
+
+COVENANT
+Title: The Church Covenant
+
+Having been led, as we believe, by the Spirit of God:
+
+1. **We engage, therefore:**
+- to **walk** together in Christian love;
+- to **strive** for the advancement of this church.
