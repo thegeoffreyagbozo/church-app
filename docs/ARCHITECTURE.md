@@ -171,7 +171,7 @@ imports `features/`. Adding a release = adding a feature folder + registering it
 
 | Version | Scope | Notes |
 |---|---|---|
-| **1.0.0** | **Hymnal, offline-first** | The build target of this plan. See DoD below. |
+| **1.0.0** | **Hymnal + readings, offline-first** | The build target of this plan. See DoD below. |
 | 1.1.0 | Events, schedule, programs (+ RSVP) | First two-way sync (outbox) on low-stakes RSVP |
 | 1.2.0 | Media (sermons/devotionals/audio/video) | R2 audio + YouTube video; `r2-sign-*` functions |
 | 1.3.0 | Accounts + **Giving** (online-only) | anon→real upgrade; Paystack; **gated** — see cost/ops |
@@ -198,8 +198,8 @@ entitlement + extra review and is **not** in the core roadmap.
 
 ## v1.0.0 — Hymnal scope & Definition of Done
 
-**In scope:** browse/search hymns fully offline; ordinary↔chorister toggle; admin manages
-hymns. **No accounts, no payments, no push** — just the offline hymnal + the admin that feeds it.
+**In scope:** browse/search hymns and readings fully offline; ordinary↔chorister toggle; admin
+manages both. **No accounts, no payments, no push**: just the offline hymnal + the admin that feeds it.
 
 Done when:
 - App shows the **full hymnal with zero network** (airplane mode, fresh install) from a baked-in
@@ -211,6 +211,9 @@ Done when:
   the cached **sheet-music PDF**, rendered offline via `pdfx`, + notation metadata +
   annotations); persisted global default + per-hymn override.
 - **FTS5 search** by number/title/first-line/author, offline, snappy on a low-end Android phone.
+- **Readings** (responsive readings, calls to worship, benedictions, creeds, the church covenant;
+  ADR 0008) browse and search offline like hymns; a responsive reading shows the congregation's
+  lines in bold.
 - Readability: user text-scale slider (independent of OS), wakelock on hymn screens, large/
   high-contrast preset.
 - Delta sync runs on launch/resume/connectivity/pull-to-refresh, applies `updated_at` upserts +
