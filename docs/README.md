@@ -30,5 +30,6 @@ are. Code can be read anywhere; the reasoning lives here.
 | [0005](./decisions/0005-single-church-no-multitenancy.md) | Single-church profile singleton; no multi-tenant plumbing in v1 | Accepted |
 | [0006](./decisions/0006-config-and-secrets.md) | Config: JSON for the app, `.env` for admin/backend; secrets never in clients | Accepted |
 | [0007](./decisions/0007-white-label-builds.md) | White-label: one codebase, one build and one Supabase project per church | Accepted |
+| [0008](./decisions/0008-readings.md) | Readings: one model for responsive readings, creeds, covenants and benedictions | Accepted |
 
 To add a decision: copy the format of any ADR, give it the next number, and add a row above.
