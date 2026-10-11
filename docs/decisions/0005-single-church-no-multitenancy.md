@@ -1,6 +1,6 @@
 # ADR 0005 — Single-church profile singleton; no multi-tenant plumbing in v1
 
-**Status:** Accepted · **Date:** 2026-10-11
+**Status:** Accepted · **Date:** 2026-10-11 · **Extended by:** [ADR 0007](./0007-white-label-builds.md) (one deployment per church)
 
 ## Context
 One design pass proposed `church_id` on nearly every table for future multi-tenancy; others
