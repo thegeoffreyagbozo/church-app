@@ -2,3 +2,4 @@
 library;
 
 export 'src/database.dart';
+export 'src/snapshot.dart';
