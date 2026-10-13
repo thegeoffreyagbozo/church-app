@@ -1,0 +1,3 @@
+tags:
+  # Needs a running Supabase stack; see test/supabase_build_test.dart.
+  supabase:

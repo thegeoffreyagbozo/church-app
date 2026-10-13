@@ -10,6 +10,9 @@ environment:
 # Part of the root Dart pub workspace.
 resolution: workspace
 
+executables:
+  build_content_db:
+
 dependencies:
   args: ^2.7.0
   drift: ^2.34.4

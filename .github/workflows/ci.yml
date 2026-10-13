@@ -59,6 +59,28 @@ jobs:
           psql "$db" -v ON_ERROR_STOP=1 -q -f /tmp/sample_book.sql
           psql "$db" -v ON_ERROR_STOP=1 -q -f /tmp/sample_book.sql
           psql "$db" -v ON_ERROR_STOP=1 -q -f packages/content_import/test/fixtures/expect_sample_book.sql
+      - name: Export local Supabase API settings
+        run: |
+          supabase status -o env \
+            --override-name api.url=SUPABASE_URL \
+            --override-name auth.anon_key=SUPABASE_KEY |
+            awk '
+              /^(SUPABASE_URL|SUPABASE_KEY)=/ {
+                name = $0
+                sub(/=.*/, "", name)
+                value = $0
+                sub(/^[^=]*=/, "", value)
+                sub(/^"/, "", value)
+                sub(/"$/, "", value)
+                print name "=" value
+              }
+            ' >> "$GITHUB_ENV"
+      - name: Build a hymn book from the sample through the public API
+        run: |
+          : "${SUPABASE_URL:?Supabase did not provide SUPABASE_URL}"
+          : "${SUPABASE_KEY:?Supabase did not provide SUPABASE_KEY}"
+          (cd packages/content_db && dart run build_runner build --delete-conflicting-outputs)
+          cd packages/content_db && dart test test/supabase_build_test.dart
       - name: RLS tests (pgTAP) — placeholder until supabase/tests/ exists
         run: |
           if [ -d supabase/tests ]; then supabase test db; else echo "no pgTAP tests yet"; fi

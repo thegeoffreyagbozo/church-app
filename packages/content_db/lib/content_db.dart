@@ -5,3 +5,4 @@ export 'src/builder.dart';
 export 'src/database.dart';
 export 'src/search_index.dart';
 export 'src/snapshot.dart';
+export 'src/supabase_source.dart';
