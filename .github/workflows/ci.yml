@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dart-lang/setup-dart@v1
         with:
-          sdk: 3.12.2   # matches the SDK that wrote pubspec.lock
+          sdk: 3.13.5   # matches the SDK that wrote pubspec.lock
       - run: dart pub get
       - name: Analyze
         run: dart analyze --fatal-infos packages
@@ -42,7 +42,7 @@ jobs:
         run: supabase db reset   # applies all migrations then runs seed.sql
       - uses: dart-lang/setup-dart@v1
         with:
-          sdk: 3.12.2
+          sdk: 3.13.5
       - name: Import a sample hymn book twice and check the result
         run: |
           dart pub get
