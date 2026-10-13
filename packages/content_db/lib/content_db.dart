@@ -6,6 +6,7 @@ export 'src/catalog.dart';
 export 'src/database.dart';
 export 'src/installer.dart';
 export 'src/models.dart';
+export 'src/search/query.dart';
 export 'src/search/scripture.dart';
 export 'src/search_index.dart';
 export 'src/snapshot.dart';
