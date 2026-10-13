@@ -7,10 +7,10 @@ publish_to: none
 environment:
   sdk: ^3.6.0
 
-# Dart pub workspaces: shared dependency resolution across member packages.
-# apps/mobile joins this list when the Flutter app spine lands (see docs/ARCHITECTURE.md
-# → Implementation steps, step 5).
+# Dart pub workspaces: shared dependency resolution across member packages. The Flutter app
+# is a member, so resolve with `flutter pub get`.
 workspace:
+  - apps/mobile
   - packages/content_db
   - packages/content_import
   - packages/shared
