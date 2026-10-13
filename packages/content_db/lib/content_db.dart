@@ -2,4 +2,5 @@
 library;
 
 export 'src/database.dart';
+export 'src/search_index.dart';
 export 'src/snapshot.dart';
