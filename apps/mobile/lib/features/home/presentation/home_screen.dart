@@ -8,32 +8,106 @@ import '../../../core/database/content_providers.dart';
 import '../../../core/labels.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/hymnal_theme.dart';
+import '../../../core/widgets/digit_row.dart';
 import '../../../core/widgets/item_row.dart';
+import '../../../core/widgets/keyboard_visibility.dart';
 import '../../../core/widgets/page_width.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../search/data/search_providers.dart';
+import '../../search/presentation/search_field.dart';
+import '../../search/presentation/search_results_view.dart';
+import '../../settings/presentation/settings_controller.dart';
 
-/// The Hymns tab (spec section 3.1): church name, sections, recently opened. Search
-/// joins in Task 15.
-class HomeScreen extends ConsumerWidget {
+/// The Hymns tab (spec section 3.1): church name, search, sections, recently opened.
+/// While searching, results replace the lists.
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  final _controller = TextEditingController();
+  final _focus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(
+      () => ref.read(searchQueryProvider.notifier).change(_controller.text),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
+
+  void _open(String path) {
+    _controller.clear();
+    _focus.unfocus();
+    context.push(path);
+  }
+
+  void _openHit(SearchHit hit) =>
+      _open(hit.type == ItemType.hymn ? hymnPath(hit.id) : readingPath(hit.id));
+
+  /// The keyboard's Go: opens the top result for everything typed so far. Waits for
+  /// those results, so a quick Go after "41" never opens a result for "4".
+  Future<void> _go() async {
+    final results = await ref.read(searchResultsProvider.future);
+    if (mounted && results.hits.isNotEmpty) _openHit(results.hits.first);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final searching = ref.watch(searchQueryProvider).trim().isNotEmpty;
+    final digitRow = ref.watch(
+      readingSettingsProvider.select((s) => s.digitRow),
+    );
     return SafeArea(
       bottom: false,
-      child: ListView(
-        padding: EdgeInsets.fromLTRB(
-          sidePadding(context),
-          16,
-          sidePadding(context),
-          110 + MediaQuery.paddingOf(context).bottom,
-        ),
+      child: Column(
         children: [
-          const _ChurchHeader(),
-          const SizedBox(height: 18),
-          _SectionChips(onOpen: (id) => context.go(sectionPath(id))),
-          const SizedBox(height: 26),
-          _RecentList(onOpen: (path) => context.push(path)),
+          Expanded(
+            child: ListView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: EdgeInsets.fromLTRB(
+                sidePadding(context),
+                16,
+                sidePadding(context),
+                110 + MediaQuery.paddingOf(context).bottom,
+              ),
+              children: [
+                const _ChurchHeader(),
+                const SizedBox(height: 16),
+                SearchField(
+                  controller: _controller,
+                  focusNode: _focus,
+                  onGo: _go,
+                ),
+                if (searching)
+                  SearchResultsView(onOpen: _openHit)
+                else ...[
+                  const SizedBox(height: 18),
+                  _SectionChips(onOpen: (id) => context.go(sectionPath(id))),
+                  const SizedBox(height: 26),
+                  _RecentList(onOpen: _open),
+                ],
+              ],
+            ),
+          ),
+          KeyboardVisibility(
+            builder: (context, keyboard) => ListenableBuilder(
+              listenable: _focus,
+              builder: (context, _) => digitRow && keyboard && _focus.hasFocus
+                  ? DigitRow(onDigit: (d) => insertAtCursor(_controller, d))
+                  : const SizedBox.shrink(),
+            ),
+          ),
         ],
       ),
     );
