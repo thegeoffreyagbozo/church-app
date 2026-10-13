@@ -1,0 +1,7 @@
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          # ISO-8601 text keeps dates readable in the bundled file and sortable as text.
+          store_date_time_values_as_text: true

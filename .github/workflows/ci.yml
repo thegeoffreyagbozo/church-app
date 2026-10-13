@@ -17,15 +17,21 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dart-lang/setup-dart@v1
         with:
-          sdk: 3.13.5   # matches the SDK that wrote pubspec.lock
+          sdk: 3.13.5   # matches the SDK that wrote pubspec.lock (Flutter 3.47.7)
       - run: dart pub get
-      - name: Analyze
-        run: dart analyze --fatal-infos packages
       - name: Check formatting
         run: dart format --output=none --set-exit-if-changed packages
-      - name: Test
+      - name: Generate the drift code (git-ignored)
+        run: dart run build_runner build --delete-conflicting-outputs
+        working-directory: packages/content_db
+      - name: Analyze
+        run: dart analyze --fatal-infos packages
+      - name: Test the importer
         run: dart test
         working-directory: packages/content_import
+      - name: Test the hymn book database
+        run: dart test
+        working-directory: packages/content_db
 
   backend:
     name: Supabase migrations + seed

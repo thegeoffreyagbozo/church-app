@@ -11,6 +11,7 @@ environment:
 # apps/mobile joins this list when the Flutter app spine lands (see docs/ARCHITECTURE.md
 # → Implementation steps, step 5).
 workspace:
+  - packages/content_db
   - packages/content_import
   - packages/shared
 
