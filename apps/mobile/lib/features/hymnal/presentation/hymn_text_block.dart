@@ -52,10 +52,14 @@ class HymnTextBlock extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
         children: [
-          SizedBox(
-            width: 30,
+          // Grows with the text size; a verse number never breaks across lines.
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: MediaQuery.textScalerOf(context).scale(30),
+            ),
             child: Text(
               number == null ? '' : '$number',
+              softWrap: false,
               style: theme.text.verseNumber,
             ),
           ),
