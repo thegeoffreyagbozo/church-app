@@ -45,9 +45,17 @@ class ReadingPartView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              SizedBox(
-                width: 32,
-                child: Text('${part.number}', style: theme.text.itemNumber),
+              // Grows with the text size; an item number never breaks across
+              // lines or spills over the words.
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  minWidth: MediaQuery.textScalerOf(context).scale(32),
+                ),
+                child: Text(
+                  '${part.number}',
+                  softWrap: false,
+                  style: theme.text.itemNumber,
+                ),
               ),
               Expanded(child: body),
             ],
