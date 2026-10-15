@@ -1,0 +1,8 @@
+{
+  "_comment": "Template for a church's public identity (ADR 0007). Copy this folder to churches/<slug>/ and edit it there; real church folders are git-ignored.",
+  "APP_NAME": "Example Church",
+  "APP_ID": "com.example.churchapp",
+  "BRAND_PRIMARY": "#24426B",
+  "BRAND_ACCENT": "#8E2C3A",
+  "CHURCH_TAGLINE": ""
+}

@@ -257,6 +257,10 @@ Done when:
    freezed, go_router, supabase_flutter, drift + sqlite3_flutter_libs, cached_network_image,
    **pdfx** for offline sheet-music PDFs, wakelock_plus, connectivity_plus); set up
    `dart run build_runner`.
+   *Delivered as piece 1, the reading experience ([ADR 0009](decisions/0009-reading-experience.md)):
+   the app reads a bundled database built by `packages/content_db`; `sqlite3` now bundles
+   SQLite itself, so `sqlite3_flutter_libs` (retired) and freezed were not needed. Sync and
+   Supabase sign-in follow in piece 2.*
 6. **Sync engine as a table registry** (`SyncableTable` config per table): delta pull +
    tombstone sweep driven by connectivity/lifecycle/pull-to-refresh. Verify hymnal renders from
    seed offline, then tops up from Supabase online.
