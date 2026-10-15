@@ -7,6 +7,7 @@ import '../../features/hymnal/presentation/hymn_page.dart';
 import '../../features/hymnal/presentation/section_list_screen.dart';
 import '../../features/readings/presentation/reading_page.dart';
 import '../../features/readings/presentation/readings_screen.dart';
+import '../../features/settings/presentation/settings_screen.dart';
 import '../widgets/home_shell.dart';
 
 String sectionPath(String id) => '/section/$id';
@@ -16,8 +17,8 @@ String readingPath(String id) => '/reading/$id';
 /// Where the app starts; tests override it to open a page directly.
 final initialLocationProvider = Provider<String>((ref) => '/');
 
-/// Tabs (Hymns, Readings) keep their own history; hymn and reading pages cover the tab
-/// bar (spec section 3). Settings joins in the next task.
+/// Tabs (Hymns, Readings, Settings) keep their own history; hymn and reading pages
+/// cover the tab bar (spec section 3).
 final routerProvider = Provider<GoRouter>((ref) {
   final root = GlobalKey<NavigatorState>();
   return GoRouter(
@@ -48,6 +49,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/readings',
                 builder: (_, _) => const ReadingsScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/settings',
+                builder: (_, _) => const SettingsScreen(),
               ),
             ],
           ),
