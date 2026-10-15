@@ -40,8 +40,10 @@ database built by `packages/content_db` and bundled as an asset.
   adb shell cmd connectivity airplane-mode disable
   ```
 
-  It fails if search takes 100 ms or more, or a hymn takes 300 ms or more to open, and saves
-  its timings in `build/integration_response_data.json`. For the cold start, run
+  It times a number search, the hymn opening until its words show, and a word typed one
+  letter at a time. It fails if results take 100 ms or more after the last key, or a hymn
+  takes 300 ms or more to show its words. It prints the timings and, when the targets hold,
+  saves them in `build/integration_response_data.json`. For the cold start, run
   `adb shell am force-stop com.example.church_app` and then
   `adb shell am start -W -n com.example.church_app/.MainActivity`: `TotalTime` should stay
   under 2000 ms.
