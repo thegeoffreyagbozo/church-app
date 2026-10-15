@@ -1,5 +1,6 @@
 import groovy.json.JsonSlurper
 import java.util.Base64
+import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -20,7 +21,7 @@ val dartDefines: Map<String, String> =
 
 // The church's folder, churches/<slug>/, is the one whose church.json has this build's
 // APP_ID. It keeps what must stay out of git: the launcher icons made by
-// tool/android_branding.dart.
+// tool/android_branding.dart, and the church's release key.
 val churchDir: File? =
     dartDefines["APP_ID"]?.let { appId ->
         rootProject.file("../../../churches").listFiles()?.firstOrNull { dir ->
@@ -63,11 +64,23 @@ android {
             .configureEach { res.srcDir(churchRes) }
     }
 
+    // android/key.properties names the key file, beside it, and its passwords.
+    churchDir?.resolve("android/key.properties")?.takeIf { it.isFile }?.let { file ->
+        val key = Properties().apply { file.inputStream().use { load(it) } }
+        signingConfigs.create("church") {
+            storeFile = file.resolveSibling(key.getProperty("storeFile"))
+            storePassword = key.getProperty("storePassword")
+            keyAlias = key.getProperty("keyAlias")
+            keyPassword = key.getProperty("keyPassword")
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // The church's own key when its folder has one; otherwise the debug key, so
+            // `flutter run --release` works for development.
+            signingConfig =
+                signingConfigs.findByName("church") ?: signingConfigs.getByName("debug")
         }
     }
 }
