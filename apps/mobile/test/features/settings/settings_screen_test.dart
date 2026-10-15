@@ -58,4 +58,15 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(LicensePage), findsOneWidget);
   });
+
+  testWidgets('the text size slider goes down to half size in 10% steps', (
+    tester,
+  ) async {
+    await pumpApp(tester, db, location: '/settings');
+
+    final slider = tester.widget<Slider>(find.byType(Slider));
+
+    expect(slider.min, 0.5);
+    expect((slider.max - slider.min) / slider.divisions!, closeTo(0.1, 1e-9));
+  });
 }

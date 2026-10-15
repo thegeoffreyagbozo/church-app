@@ -38,7 +38,7 @@ class ReadingSettings {
     );
   }
 
-  static const minTextScale = 0.8;
+  static const minTextScale = 0.5;
   static const maxTextScale = 2.0;
 
   static double clampTextScale(double value) =>
@@ -51,7 +51,7 @@ class ReadingSettings {
   static const _digitRow = 'digit_row';
   static const _hymnView = 'hymn_view';
 
-  /// The reader's own text size, multiplied with the phone's (0.8 to 2.0).
+  /// The reader's own text size, multiplied with the phone's (0.5 to 2.0).
   final double textScale;
   final ReadingTheme theme;
   final bool legibleType;
