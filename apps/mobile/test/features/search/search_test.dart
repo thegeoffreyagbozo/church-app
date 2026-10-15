@@ -28,17 +28,21 @@ void main() {
   });
 
   testWidgets(
-    'Go right after typing opens the number typed, not an earlier one',
+    'Go right after typing opens what was typed, not an earlier result',
     (tester) async {
       await pumpApp(tester, db);
-      await tester.enterText(find.byType(TextField), '4');
+      // "s" alone finds other hymns; "s2" is Supplementary 2.
+      await tester.enterText(find.byType(TextField), 's');
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextField), '41');
+      // Type the 2 and press Go at once, before the search for "s2" finishes
+      // (tester.enterText would wait for it).
+      tester.testTextInput.enterText('s2');
       await tester.testTextInput.receiveAction(TextInputAction.go);
       await tester.pumpAndSettle();
 
-      expect(find.text('How Firm a Foundation'), findsOneWidget);
+      expect(find.byType(HymnPage), findsOneWidget);
+      expect(find.text('Thine Is the Glory'), findsOneWidget);
     },
   );
 
