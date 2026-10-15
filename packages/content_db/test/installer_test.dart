@@ -141,4 +141,34 @@ void main() {
       throwsA(isA<NotEnoughSpaceException>()),
     );
   });
+
+  test('an update on a full phone keeps the book already there', () async {
+    final first = await bundle(october);
+    await installer.ensureInstalled(
+      bundledBuiltAt: october,
+      loadBundle: () async => first,
+    );
+    final second = await bundle(november);
+    // The storage fills up halfway through writing the new copy.
+    final full = ContentInstaller(
+      phonePath,
+      writeBytes: (file, bytes) async {
+        await file.writeAsBytes(bytes.sublist(0, bytes.length ~/ 2));
+        throw FileSystemException(
+          'Write failed',
+          file.path,
+          const OSError('No space left on device', 28),
+        );
+      },
+    );
+
+    final outcome = await full.ensureInstalled(
+      bundledBuiltAt: november,
+      loadBundle: () async => second,
+    );
+
+    expect(outcome, InstallOutcome.unchanged);
+    expect(await withPhoneDb((db) => ContentCatalog(db).builtAt()), october);
+    expect(File('$phonePath.new').existsSync(), isFalse);
+  });
 }

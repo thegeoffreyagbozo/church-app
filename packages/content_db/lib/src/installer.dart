@@ -64,19 +64,28 @@ class ContentInstaller {
       if (sameSchema && !bundledBuiltAt.isAfter(local.builtAt)) {
         return InstallOutcome.unchanged;
       }
-      return await _update(await loadBundle())
-          ? InstallOutcome.updated
-          : InstallOutcome.unchanged;
-    } on FileSystemException catch (e) {
-      if (e.osError?.errorCode == _noSpace) {
-        throw const NotEnoughSpaceException();
+      final bundle = await loadBundle();
+      try {
+        return await _update(bundle)
+            ? InstallOutcome.updated
+            : InstallOutcome.unchanged;
+      } on Exception catch (e) {
+        // A full phone can't take the newer copy, but the one it has still works:
+        // keep reading it and try again at the next launch.
+        if (sameSchema && _isNoSpace(e)) return InstallOutcome.unchanged;
+        rethrow;
       }
-      rethrow;
-    } on SqliteException catch (e) {
-      if (e.resultCode == _sqliteFull) throw const NotEnoughSpaceException();
+    } on Exception catch (e) {
+      if (_isNoSpace(e)) throw const NotEnoughSpaceException();
       rethrow;
     }
   }
+
+  static bool _isNoSpace(Exception e) => switch (e) {
+    FileSystemException(:final osError) => osError?.errorCode == _noSpace,
+    SqliteException(:final resultCode) => resultCode == _sqliteFull,
+    _ => false,
+  };
 
   /// When the copy on the phone was built, or null if it fails its checks.
   ({DateTime builtAt, int schemaVersion})? _inspect() {
@@ -113,34 +122,36 @@ class ContentInstaller {
   /// current book in place, if they can't be carried across.
   Future<bool> _update(Uint8List bytes) async {
     final fresh = File('$databasePath.new');
-    await _write(fresh, bytes);
-    final db = sqlite3.open(fresh.path);
     var carried = false;
     try {
-      db
-        ..execute('ATTACH DATABASE ? AS old', [databasePath])
-        ..execute('BEGIN')
-        ..execute(
-          'INSERT OR REPLACE INTO main.settings (key, value) '
-          'SELECT key, value FROM old.settings',
-        )
-        ..execute(
-          'INSERT OR REPLACE INTO main.recently_opened '
-          '(item_type, item_id, opened_at) '
-          'SELECT item_type, item_id, opened_at FROM old.recently_opened',
-        )
-        ..execute('COMMIT')
-        ..execute('DETACH DATABASE old');
-      carried = true;
-    } on SqliteException catch (e) {
-      if (e.resultCode == _sqliteFull) rethrow;
+      await _write(fresh, bytes);
+      final db = sqlite3.open(fresh.path);
+      try {
+        db
+          ..execute('ATTACH DATABASE ? AS old', [databasePath])
+          ..execute('BEGIN')
+          ..execute(
+            'INSERT OR REPLACE INTO main.settings (key, value) '
+            'SELECT key, value FROM old.settings',
+          )
+          ..execute(
+            'INSERT OR REPLACE INTO main.recently_opened '
+            '(item_type, item_id, opened_at) '
+            'SELECT item_type, item_id, opened_at FROM old.recently_opened',
+          )
+          ..execute('COMMIT')
+          ..execute('DETACH DATABASE old');
+        carried = true;
+      } on SqliteException catch (e) {
+        if (e.resultCode == _sqliteFull) rethrow;
+      } finally {
+        db.close();
+      }
     } finally {
-      db.close();
+      // A copy that won't be used, or was cut short, only takes up space.
+      if (!carried && fresh.existsSync()) fresh.deleteSync();
     }
-    if (!carried) {
-      fresh.deleteSync();
-      return false;
-    }
+    if (!carried) return false;
     _deleteSidecars();
     await fresh.rename(databasePath);
     return true;
