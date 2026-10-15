@@ -46,6 +46,28 @@ void main() {
     );
   });
 
+  test('shares a reading with its reference and plain text', () {
+    const reading = ReadingDetail(
+      id: 'r',
+      kind: ReadingKind.benediction,
+      number: 3,
+      title: 'Benedictions',
+      isPublicDomain: true,
+      parts: [
+        ReadingPartText(
+          number: 1,
+          body: 'The Lord **bless** thee.',
+          scriptureRef: 'Numbers 6:24',
+        ),
+      ],
+    );
+
+    expect(
+      readingShareText(l10n, reading, churchName: 'Grace Chapel'),
+      'Reading 3 · Benedictions\n\n1.\nThe Lord bless thee.\nNumbers 6:24\n\nShared from Grace Chapel',
+    );
+  });
+
   group('ReportTarget', () {
     test('uses the WhatsApp number, else the phone, as digits', () {
       expect(
