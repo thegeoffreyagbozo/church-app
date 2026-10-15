@@ -121,6 +121,27 @@ void main() {
     );
   });
 
+  testWidgets('keeps the number and title pinned far down a long hymn', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pumpApp(
+      tester,
+      db,
+      location: '/hymn/hymn-41',
+      settings: const ReadingSettingsForTest(textScale: 2).settings,
+    );
+
+    for (var i = 0; i < 4; i++) {
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
+      await tester.pumpAndSettle();
+    }
+
+    expect(find.byKey(const ValueKey('compact-title')), findsOneWidget);
+  });
+
   testWidgets('keeps the screen on while open, then lets it sleep', (
     tester,
   ) async {

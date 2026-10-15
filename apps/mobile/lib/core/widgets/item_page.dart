@@ -99,50 +99,67 @@ class _ItemPageState extends ConsumerState<ItemPage> {
               child: CustomScrollView(
                 controller: _scroll,
                 slivers: [
+                  // A box adapter keeps the header built however far the page
+                  // scrolls; the pinned bar measures the title in it.
                   SliverPadding(
                     padding: EdgeInsets.fromLTRB(
                       side,
                       padding.top + _barHeight + 8,
                       side,
+                      0,
+                    ),
+                    sliver: SliverToBoxAdapter(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            widget.kicker.toUpperCase(),
+                            style: theme.text.kicker,
+                          ),
+                          if (widget.number != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Text(
+                                '${widget.number}',
+                                style: theme.text.bigNumber,
+                              ),
+                            ),
+                          Padding(
+                            key: _titleKey,
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Semantics(
+                              header: true,
+                              child: Text(
+                                widget.title,
+                                style: theme.text.pageTitle,
+                              ),
+                            ),
+                          ),
+                          if (widget.subtitle != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Text(
+                                widget.subtitle!,
+                                style: theme.text.credits,
+                              ),
+                            ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            child: Divider(color: theme.palette.rule),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SliverPadding(
+                    padding: EdgeInsets.fromLTRB(
+                      side,
+                      0,
+                      side,
                       48 + padding.bottom,
                     ),
                     sliver: SliverList.list(
                       children: [
-                        Text(
-                          widget.kicker.toUpperCase(),
-                          style: theme.text.kicker,
-                        ),
-                        if (widget.number != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 6),
-                            child: Text(
-                              '${widget.number}',
-                              style: theme.text.bigNumber,
-                            ),
-                          ),
-                        Padding(
-                          key: _titleKey,
-                          padding: const EdgeInsets.only(top: 6),
-                          child: Semantics(
-                            header: true,
-                            child: Text(
-                              widget.title,
-                              style: theme.text.pageTitle,
-                            ),
-                          ),
-                        ),
-                        if (widget.subtitle != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 6),
-                            child: Text(
-                              widget.subtitle!,
-                              style: theme.text.credits,
-                            ),
-                          ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 18),
-                          child: Divider(color: theme.palette.rule),
-                        ),
                         // Only the words take the reader's text size; the header
                         // keeps the phone's, so the number never crowds them out.
                         ReadingTextScale(
