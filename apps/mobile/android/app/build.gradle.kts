@@ -1,8 +1,21 @@
+import java.util.Base64
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+// The church settings file (ADR 0007) reaches Gradle as Flutter's `dart-defines` property:
+// each KEY=VALUE base64-encoded, joined with commas.
+val dartDefines: Map<String, String> =
+    (findProperty("dart-defines") as String?)
+        .orEmpty()
+        .split(",")
+        .filter { it.isNotBlank() }
+        .map { String(Base64.getDecoder().decode(it), Charsets.UTF_8) }
+        .filter { "=" in it }
+        .associate { it.substringBefore("=") to it.substringAfter("=") }
 
 android {
     namespace = "com.example.church_app"
@@ -15,8 +28,10 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.church_app"
+        // The church's package ID and home-screen name. Builds without a church file keep
+        // the development identity.
+        applicationId = dartDefines["APP_ID"] ?: "com.example.church_app"
+        manifestPlaceholders["appName"] = dartDefines["APP_NAME"] ?: "church_app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

@@ -32,7 +32,7 @@ database built by `packages/content_db` and bundled as an asset.
 - The speed check runs on an emulator or phone, from a first launch with no network:
 
   ```bash
-  adb uninstall com.example.church_app || true
+  adb uninstall com.example.churchapp || true
   adb shell cmd connectivity airplane-mode enable
   flutter drive --profile --driver=test_driver/integration_test.dart \
     --target=integration_test/pew_flow_test.dart \
@@ -44,9 +44,10 @@ database built by `packages/content_db` and bundled as an asset.
   letter at a time. It fails if results take 100 ms or more after the last key, or a hymn
   takes 300 ms or more to show its words. It prints the timings and, when the targets hold,
   saves them in `build/integration_response_data.json`. For the cold start, run
-  `adb shell am force-stop com.example.church_app` and then
-  `adb shell am start -W -n com.example.church_app/.MainActivity`: `TotalTime` should stay
-  under 2000 ms.
+  `adb shell am force-stop com.example.churchapp` and then
+  `adb shell am start -W -n com.example.churchapp/com.example.church_app.MainActivity`:
+  `TotalTime` should stay under 2000 ms. The package ID is the church file's `APP_ID`; the
+  activity keeps the app's own namespace.
 
 ## Fonts
 

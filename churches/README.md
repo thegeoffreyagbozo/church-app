@@ -9,8 +9,8 @@ the build machine, with a private backup.
 
 | Key | Meaning |
 |---|---|
-| `APP_NAME` | Home-screen label (used from piece 3) |
-| `APP_ID` | Package ID: the church's domain reversed (used from piece 3) |
+| `APP_NAME` | Home-screen label (Android now, iOS from piece 3) |
+| `APP_ID` | Package ID: the church's domain reversed (Android now, iOS from piece 3) |
 | `BRAND_PRIMARY` | Numbers, buttons and the reading band, as `#RRGGBB` |
 | `BRAND_ACCENT` | Kickers and verse numbers, as `#RRGGBB` |
 | `CHURCH_TAGLINE` | Optional line under the church name on Home; leave empty for none |
