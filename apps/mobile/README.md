@@ -16,13 +16,48 @@ database built by `packages/content_db` and bundled as an asset.
    Without a Supabase project, use the public-domain sample instead:
    `--from-json packages/content_db/test/fixtures/sample_content.json`. The file is
    git-ignored because it is church content.
-2. Run with a church settings file (colours and tagline) and the environment config:
+2. Run with a church settings file (name, package ID, colours and tagline) and the
+   environment config:
 
    ```bash
    cd apps/mobile
    flutter run --dart-define-from-file=../../churches/example/church.json \
      --dart-define-from-file=../../config/dev.json
    ```
+
+## Build a church's Android app
+
+For a church with a folder in `churches/` (see `churches/README.md`), from `apps/mobile`:
+
+1. Build the hymn book from the church's content, as in "Run it".
+2. Make the launcher icons: `dart run tool/android_branding.dart ../../churches/<slug>`.
+3. Once per church, make its release key in `churches/<slug>/android/` and back it up
+   privately. Every update must be signed with this key, or phones won't install it over
+   the old one.
+
+   ```bash
+   keytool -genkeypair -keystore upload-keystore.jks -storetype PKCS12 -alias upload \
+     -keyalg RSA -keysize 2048 -validity 10000
+   ```
+
+   Beside it, `key.properties` names the key and its password (the same password twice):
+
+   ```properties
+   storePassword=...
+   keyPassword=...
+   keyAlias=upload
+   storeFile=upload-keystore.jks
+   ```
+
+4. Build one install file for any Android phone:
+
+   ```bash
+   flutter build apk --release --dart-define-from-file=../../churches/<slug>/church.json
+   ```
+
+   `apksigner verify --print-certs build/app/outputs/flutter-apk/app-release.apk` shows the
+   church's name, not "Android Debug". Raise the build number in `pubspec.yaml` (`+2`, `+3`)
+   for each update.
 
 ## Test it
 

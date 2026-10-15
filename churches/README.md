@@ -9,8 +9,10 @@ the build machine, with a private backup.
 - `branding/`: the church's logo and icons, under the fixed names below.
 - `android/`: made on the build machine. `res/` holds the launcher icons, written by
   `dart run tool/android_branding.dart ../../churches/<slug>` from `apps/mobile`; run it
-  again after changing an icon. Builds made with the church's settings file use them:
-  Gradle finds the folder whose `church.json` has the build's `APP_ID`.
+  again after changing an icon. `key.properties` and `upload-keystore.jks` are the church's
+  release key (see `apps/mobile/README.md`); keep a private backup. Builds made with the
+  church's settings file use both: Gradle finds the folder whose `church.json` has the
+  build's `APP_ID`.
 
 | Key | Meaning |
 |---|---|
