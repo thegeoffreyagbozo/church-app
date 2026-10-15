@@ -25,6 +25,8 @@ a cooperative focus mode, notes, and a Bible.
 apps/mobile/       Flutter app (iOS + Android)
 packages/shared/   Shared Dart models, enums, DTOs (mobile-only)
 packages/content_import/  Imports a transcribed hymn book into Supabase (ADR 0008)
+packages/content_db/      The on-phone hymn book: database, search, and its build tool (ADR 0009)
+churches/          per-church settings (git-ignored except example/; ADR 0007)
 admin/             React + TS admin SPA (own package.json)
 supabase/          config.toml · migrations/ · functions/ · seed.sql
 config/            per-env public config (JSON; git-ignored except example.json)
@@ -48,12 +50,12 @@ cd supabase && supabase start                 # local stack
 #   or: supabase db push                       # apply migrations to your cloud project
 supabase db reset                              # apply migrations + seed.sql
 
-# 3. Mobile app
-cd apps/mobile
-flutter create --platforms=android,ios .       # generate native shells (first time only)
+# 3. Mobile app (details in apps/mobile/README.md)
 flutter pub get
-dart run build_runner build --delete-conflicting-outputs
-flutter run --dart-define-from-file=../../config/dev.json
+(cd packages/content_db && dart run build_runner build --delete-conflicting-outputs)
+dart run content_db:build_content_db --config config/dev.json --out apps/mobile/assets/content/content.db
+cd apps/mobile && flutter run --dart-define-from-file=../../churches/example/church.json \
+  --dart-define-from-file=../../config/dev.json
 
 # 4. Admin panel
 cd admin && pnpm install && pnpm dev

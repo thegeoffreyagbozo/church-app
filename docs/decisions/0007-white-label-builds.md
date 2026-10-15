@@ -17,7 +17,9 @@ white-label client.
 - **Identity and branding are config, not code.** A church is a folder, `churches/<slug>/`
   (slug: for example the church's domain name without the TLD), holding:
   - `church.json`: `APP_NAME` (home-screen label), `APP_ID` (Android applicationId and iOS
-    bundle ID), brand seed color, and similar public values;
+    bundle ID), `BRAND_PRIMARY` and `BRAND_ACCENT` (the two brand colours as `#RRGGBB`), an
+    optional `CHURCH_TAGLINE` (a line under the church name on Home), and similar public values
+    (see `churches/README.md`);
   - `prod.json`: that church's backend (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, later the Paystack
     public key);
   - icon and splash images.
