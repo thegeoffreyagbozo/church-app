@@ -8,6 +8,8 @@ import '../../../core/widgets/item_page.dart';
 import '../../../core/widgets/missing_item.dart';
 import '../../../core/widgets/opened_marker.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../item_menu/domain/share_text.dart';
+import '../../item_menu/presentation/item_menu.dart';
 import '../../settings/presentation/settings_controller.dart';
 import '../data/hymnal_providers.dart';
 import '../domain/hymn_layout.dart';
@@ -15,8 +17,7 @@ import 'hymn_text_block.dart';
 import 'music_card.dart';
 import 'view_switch.dart';
 
-/// One hymn: every verse on one page, the chorus after each (spec section 3.3). The
-/// `···` menu joins in Task 16.
+/// One hymn: every verse on one page, the chorus after each (spec section 3.3).
 class HymnPage extends ConsumerWidget {
   const HymnPage({super.key, required this.id});
 
@@ -48,12 +49,28 @@ class _Hymn extends ConsumerWidget {
     final music =
         ref.watch(readingSettingsProvider.select((s) => s.hymnView)) ==
         HymnViewMode.chorister;
+    final label = itemLabel(
+      hymnName(l10n, hymn.section, hymn.number),
+      hymn.title,
+    );
     return ItemPage(
       kicker: hymnKicker(l10n, hymn.section),
       number: hymn.number,
       title: hymn.title,
       subtitle: creditsLine(hymn.author, hymn.composer),
-      actions: const [ViewSwitch()],
+      actions: [
+        const ViewSwitch(),
+        const SizedBox(width: 6),
+        ItemMenuButton(
+          subject: MenuSubject(
+            label: label,
+            isHymn: true,
+            isPublicDomain: hymn.isPublicDomain,
+            shareText: (church) =>
+                hymnShareText(l10n, hymn, churchName: church),
+          ),
+        ),
+      ],
       children: [
         if (music) MusicCard(hymn),
         for (final text in withChorusAfterEachVerse(hymn.texts))
