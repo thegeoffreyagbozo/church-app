@@ -1,3 +1,4 @@
+import groovy.json.JsonSlurper
 import java.util.Base64
 
 plugins {
@@ -16,6 +17,17 @@ val dartDefines: Map<String, String> =
         .map { String(Base64.getDecoder().decode(it), Charsets.UTF_8) }
         .filter { "=" in it }
         .associate { it.substringBefore("=") to it.substringAfter("=") }
+
+// The church's folder, churches/<slug>/, is the one whose church.json has this build's
+// APP_ID. It keeps what must stay out of git: the launcher icons made by
+// tool/android_branding.dart.
+val churchDir: File? =
+    dartDefines["APP_ID"]?.let { appId ->
+        rootProject.file("../../../churches").listFiles()?.firstOrNull { dir ->
+            val settings = File(dir, "church.json")
+            settings.isFile && (JsonSlurper().parse(settings) as Map<*, *>)["APP_ID"] == appId
+        }
+    }
 
 android {
     namespace = "com.example.church_app"
@@ -42,6 +54,13 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+    }
+
+    // The church's launcher icons override the template's in every build type.
+    churchDir?.resolve("android/res")?.takeIf { it.isDirectory }?.let { churchRes ->
+        sourceSets
+            .matching { it.name in setOf("debug", "profile", "release") }
+            .configureEach { res.srcDir(churchRes) }
     }
 
     buildTypes {
