@@ -42,11 +42,19 @@ class ItemRow extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              width: 60,
+            // The column grows with the text size, and a number never breaks across
+            // lines: "268" must not read as "26" above "8".
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                minWidth: MediaQuery.textScalerOf(context).scale(60),
+              ),
               child: number == null
                   ? null
-                  : Text('$number', style: theme.text.listNumber),
+                  : Text(
+                      '$number',
+                      softWrap: false,
+                      style: theme.text.listNumber,
+                    ),
             ),
             Expanded(
               child: Column(
