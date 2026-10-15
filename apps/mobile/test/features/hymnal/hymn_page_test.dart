@@ -166,6 +166,27 @@ void main() {
     },
   );
 
+  testWidgets('keeps the screen on after returning from another hymn', (
+    tester,
+  ) async {
+    final platform = await pumpApp(
+      tester,
+      db,
+      location: '/hymn/hymn-41',
+      settings: const ReadingSettings(hymnView: HymnViewMode.chorister),
+    );
+
+    // "Also sung to" opens hymn 1 on top of hymn 41.
+    await tester.tap(find.text('Toplady · 1'));
+    await tester.pumpAndSettle();
+    expect(platform.screen.awake, isTrue);
+    await tester.tap(find.byTooltip('Back').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('How Firm a Foundation'), findsWidgets);
+    expect(platform.screen.awake, isTrue);
+  });
+
   testWidgets('keeps lines readable on a tablet', (tester) async {
     tester.view.physicalSize = const Size(1600, 1200);
     tester.view.devicePixelRatio = 1;
