@@ -6,7 +6,7 @@ import '../../l10n/app_localizations.dart';
 import '../theme/hymnal_theme.dart';
 import 'glass_surface.dart';
 
-/// The tabs with a floating glass tab bar, hidden while the keyboard is up.
+/// The three tabs with a floating glass tab bar, hidden while the keyboard is up.
 class HomeShell extends StatelessWidget {
   const HomeShell({super.key, required this.shell});
 
@@ -44,6 +44,10 @@ class HomeShell extends StatelessWidget {
                     NavigationDestination(
                       icon: const Icon(LucideIcons.list),
                       label: l10n.tabReadings,
+                    ),
+                    NavigationDestination(
+                      icon: const Icon(LucideIcons.settings),
+                      label: l10n.tabSettings,
                     ),
                   ],
                 ),

@@ -1,4 +1,5 @@
 import 'package:church_app/features/readings/presentation/readings_screen.dart';
+import 'package:church_app/features/settings/presentation/settings_screen.dart';
 import 'package:content_db/content_db.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -23,6 +24,15 @@ void main() {
     await tester.tap(find.text('Hymns'));
     await tester.pumpAndSettle();
     expect(find.text('Grace Chapel'), findsOneWidget);
+  });
+
+  testWidgets('the Settings tab opens settings', (tester) async {
+    await pumpApp(tester, db);
+
+    await tester.tap(find.text('Settings'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SettingsScreen), findsOneWidget);
   });
 
   testWidgets('the tab bar hides while the keyboard is up', (tester) async {
