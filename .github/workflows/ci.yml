@@ -62,6 +62,13 @@ jobs:
       - name: Test (unit, widget, accessibility, golden screenshots)
         run: flutter test
         working-directory: apps/mobile
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Build the Android app for the example church (catches Gradle breakage)
+        run: flutter build apk --debug --dart-define-from-file=../../churches/example/church.json
+        working-directory: apps/mobile
 
   backend:
     name: Supabase migrations + seed
