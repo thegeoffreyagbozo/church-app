@@ -89,6 +89,44 @@ void main() {
     expect(find.byKey(const ValueKey('digit-1')), findsNothing);
   });
 
+  String searchText(WidgetTester tester) =>
+      tester.widget<TextField>(find.byType(TextField)).controller!.text;
+
+  testWidgets(
+    'a tap outside the search hides the keyboard, keeping the words',
+    (tester) async {
+      await pumpApp(tester, db);
+      await tester.enterText(find.byType(TextField), 'grace');
+      await tester.pumpAndSettle();
+      expect(tester.testTextInput.isVisible, isTrue);
+
+      await tester.tap(find.text('Grace Chapel'));
+      await tester.pumpAndSettle();
+
+      expect(tester.testTextInput.isVisible, isFalse);
+      expect(searchText(tester), 'grace');
+    },
+  );
+
+  testWidgets('the number row and the clear button keep the keyboard up', (
+    tester,
+  ) async {
+    await pumpApp(tester, db);
+    await tester.tap(find.byType(TextField));
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('digit-4')));
+    await tester.pumpAndSettle();
+    expect(tester.testTextInput.isVisible, isTrue);
+
+    await tester.tap(find.byTooltip('Clear search'));
+    await tester.pumpAndSettle();
+    expect(tester.testTextInput.isVisible, isTrue);
+    expect(searchText(tester), isEmpty);
+  });
+
   testWidgets('words find hymns with the matched words highlighted', (
     tester,
   ) async {
