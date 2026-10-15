@@ -43,6 +43,11 @@ void main() {
       expect(settings.theme, ReadingTheme.auto);
       expect(settings.keepScreenOn, isTrue);
     });
+
+    test('text can be as small as half the normal size', () {
+      expect(ReadingSettings.fromMap({'text_scale': '0.5'}).textScale, 0.5);
+      expect(ReadingSettings.fromMap({'text_scale': '0.3'}).textScale, 0.5);
+    });
   });
 
   group('ReadingSettingsController', () {

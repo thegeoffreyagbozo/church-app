@@ -39,7 +39,7 @@ Future<void> showReadingSettingsSheet(BuildContext context) =>
       ),
     );
 
-/// A preview line at the chosen size and the slider (0.8 to 2.0).
+/// A preview line at the chosen size and the slider (0.5 to 2.0, in steps of 10%).
 class TextSizeControl extends ConsumerWidget {
   const TextSizeControl({super.key});
 
@@ -71,7 +71,7 @@ class TextSizeControl extends ConsumerWidget {
           value: scale,
           min: ReadingSettings.minTextScale,
           max: ReadingSettings.maxTextScale,
-          divisions: 12,
+          divisions: 15,
           label: '${(scale * 100).round()}%',
           semanticFormatterCallback: (v) => '${(v * 100).round()}%',
           onChanged: ref.read(readingSettingsProvider.notifier).setTextScale,
