@@ -27,10 +27,25 @@ void main() {
     expect(find.text('Grace Chapel'), findsOneWidget);
     expect(find.text('Service Music'), findsOneWidget);
     expect(find.text('Supplementary Hymns'), findsOneWidget);
+    expect(find.text('Nothing opened yet'), findsOneWidget);
     expect(
-      find.text('Hymns and readings you open will appear here.'),
+      find.text('Hymns and readings you open will appear here, newest first.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('Find a hymn on the empty recent list opens the search', (
+    tester,
+  ) async {
+    await pumpApp(tester, db);
+    final search = find.byType(EditableText);
+    expect(tester.widget<EditableText>(search).focusNode.hasFocus, isFalse);
+
+    await tester.tap(find.text('Find a hymn'));
+    await tester.pump();
+
+    expect(tester.widget<EditableText>(search).focusNode.hasFocus, isTrue);
+    expect(tester.testTextInput.isVisible, isTrue);
   });
 
   testWidgets('shows the church logo left of its name', (tester) async {

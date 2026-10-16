@@ -2,6 +2,7 @@ import 'package:content_db/content_db.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../core/config/church_config.dart';
 import '../../../core/database/content_providers.dart';
@@ -95,7 +96,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   const SizedBox(height: 18),
                   _SectionChips(onOpen: (id) => context.go(sectionPath(id))),
                   const SizedBox(height: 26),
-                  _RecentList(onOpen: _open),
+                  _RecentList(onOpen: _open, onFindHymn: _focus.requestFocus),
                 ],
               ],
             ),
@@ -203,9 +204,12 @@ class _SectionChips extends ConsumerWidget {
 }
 
 class _RecentList extends ConsumerWidget {
-  const _RecentList({required this.onOpen});
+  const _RecentList({required this.onOpen, required this.onFindHymn});
 
   final ValueChanged<String> onOpen;
+
+  /// Opens the search, which the empty list offers as the way to start.
+  final VoidCallback onFindHymn;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -217,11 +221,7 @@ class _RecentList extends ConsumerWidget {
       children: [
         Text(l10n.recentlyOpened.toUpperCase(), style: theme.text.listLabel),
         const SizedBox(height: 4),
-        if (recent.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Text(l10n.recentEmpty, style: theme.text.caption),
-          ),
+        if (recent.isEmpty) _NothingOpened(onFindHymn: onFindHymn),
         for (final item in recent)
           ItemRow(
             number: item.number,
@@ -245,6 +245,97 @@ class _RecentList extends ConsumerWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// "Recently opened" before anything is opened: what will appear there, and a way to
+/// start.
+class _NothingOpened extends StatelessWidget {
+  const _NothingOpened({required this.onFindHymn});
+
+  final VoidCallback onFindHymn;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = HymnalTheme.of(context);
+    final palette = theme.palette;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Column(
+        children: [
+          // Decoration: the words under it say the same. Drawn from the icon set,
+          // so it takes each church's colours.
+          ExcludeSemantics(
+            child: SizedBox.square(
+              dimension: 76,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: palette.tint,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        LucideIcons.bookOpen,
+                        size: 34,
+                        color: palette.primary,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: -2,
+                    bottom: -2,
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: palette.primary,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: palette.background, width: 2),
+                      ),
+                      child: Icon(
+                        LucideIcons.history,
+                        size: 16,
+                        color: palette.onPrimary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            l10n.recentEmptyTitle,
+            textAlign: TextAlign.center,
+            style: theme.text.listTitle,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l10n.recentEmpty,
+            textAlign: TextAlign.center,
+            style: theme.text.listSubtitle,
+          ),
+          const SizedBox(height: 20),
+          FilledButton.icon(
+            onPressed: onFindHymn,
+            icon: const Icon(LucideIcons.search, size: 18),
+            label: Text(l10n.findHymn),
+            style: FilledButton.styleFrom(
+              backgroundColor: palette.primary,
+              foregroundColor: palette.onPrimary,
+              minimumSize: const Size(0, 48),
+              padding: const EdgeInsets.symmetric(horizontal: 22),
+              shape: const StadiumBorder(),
+              textStyle: theme.text.bodyStrong,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
