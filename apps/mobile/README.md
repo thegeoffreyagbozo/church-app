@@ -30,7 +30,7 @@ database built by `packages/content_db` and bundled as an asset.
 For a church with a folder in `churches/` (see `churches/README.md`), from `apps/mobile`:
 
 1. Build the hymn book from the church's content, as in "Run it".
-2. Make the launcher icons: `dart run tool/android_branding.dart ../../churches/<slug>`.
+2. Make the launcher icons: `dart run tool/church_branding.dart ../../churches/<slug>`.
 3. Once per church, make its release key in `churches/<slug>/android/` and back it up
    privately. Every update must be signed with this key, or phones won't install it over
    the old one.

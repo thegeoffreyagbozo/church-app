@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 
-import '../../tool/android_branding.dart';
+import '../../tool/church_branding.dart';
 
 const _legacySizes = {
   'mdpi': 48,
@@ -41,7 +41,7 @@ void main() {
   );
 
   setUp(() {
-    church = Directory.systemTemp.createTempSync('android_branding_test');
+    church = Directory.systemTemp.createTempSync('church_branding_test');
     Directory(path('branding')).createSync();
     writeBrand('#24426b');
     writePng('icon.png', _icon(512));

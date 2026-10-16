@@ -5,7 +5,7 @@ import 'package:image/image.dart' as img;
 
 /// Turns a church's branding into its Android launcher icons (ADR 0007).
 ///
-/// From `apps/mobile`: `dart run tool/android_branding.dart ../../churches/<slug>`.
+/// From `apps/mobile`: `dart run tool/church_branding.dart ../../churches/<slug>`.
 /// It reads `branding/icon.png`, `icon_foreground.png` and `icon_monochrome.png` and the
 /// church's `BRAND_PRIMARY`, and writes `android/res` in the church's folder. Gradle adds
 /// that folder to builds made with the church's settings file. Like the rest of the
@@ -13,7 +13,7 @@ import 'package:image/image.dart' as img;
 void main(List<String> arguments) {
   if (arguments.length != 1) {
     stderr.writeln(
-      'Usage: dart run tool/android_branding.dart <church folder>, '
+      'Usage: dart run tool/church_branding.dart <church folder>, '
       'such as ../../churches/example',
     );
     exit(64);

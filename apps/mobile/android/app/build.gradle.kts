@@ -21,7 +21,7 @@ val dartDefines: Map<String, String> =
 
 // The church's folder, churches/<slug>/, is the one whose church.json has this build's
 // APP_ID. It keeps what must stay out of git: the launcher icons made by
-// tool/android_branding.dart, and the church's release key.
+// tool/church_branding.dart, and the church's release key.
 val churchDir: File? =
     dartDefines["APP_ID"]?.let { appId ->
         rootProject.file("../../../churches").listFiles()?.firstOrNull { dir ->
