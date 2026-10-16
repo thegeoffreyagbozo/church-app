@@ -1,7 +1,8 @@
 # ADR 0009: The reading experience (piece 1 of the app)
 
 **Status:** Accepted · **Date:** 2026-10-12 · **Builds on:** [ADR 0001](./0001-local-db-drift.md),
-[ADR 0007](./0007-white-label-builds.md), [ADR 0008](./0008-readings.md)
+[ADR 0007](./0007-white-label-builds.md), [ADR 0008](./0008-readings.md) · **Amended by:**
+[ADR 0010](./0010-platform-tab-bars.md)
 
 ## Context
 A congregation needs its hymn book and readings in the pew: found within seconds of the number
@@ -16,9 +17,10 @@ church's colours.
 - **Two brand colours from the church settings file**: `BRAND_PRIMARY` and `BRAND_ACCENT`
   (ADR 0007). The Paper and Night palettes are derived from them, and each text colour is
   darkened or lightened until it meets WCAG AA, so any brand colours work.
-- **Glass only where it helps**: the tab bar, the pinned header, the `···` menu and sheets, drawn
-  with Flutter's blur. It turns solid on Android phones with 3 GB of RAM or less (or that report
-  low memory) and when the phone asks for high contrast.
+- **Glass only where it helps**: the pinned header, the `···` menu and sheets, drawn with
+  Flutter's blur (the tab bar is each platform's own since
+  [ADR 0010](./0010-platform-tab-bars.md)). It turns solid on Android phones with 3 GB of RAM or
+  less (or that report low memory) and when the phone asks for high contrast.
 - **One search bar, no Search tab.** It takes digits, a section and a number ("S2", "hymn 268"),
   a scripture reference or words, offline (SQLite FTS5). The app draws its own number row above
   the keyboard, because Android apps cannot turn on the keyboard's. Go opens the top result once
