@@ -201,6 +201,7 @@ class ContentCatalog {
       phone: row.phone,
       whatsapp: row.whatsapp,
       website: row.website,
+      tagline: row.tagline,
     );
   }
 

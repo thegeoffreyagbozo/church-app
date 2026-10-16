@@ -104,6 +104,9 @@ class Church extends Table {
   TextColumn get whatsapp => text().nullable()();
   TextColumn get website => text().nullable()();
 
+  /// A line under the church's name on Home, such as its motto; may hold a line break.
+  TextColumn get tagline => text().nullable()();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }

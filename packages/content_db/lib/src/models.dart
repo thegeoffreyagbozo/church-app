@@ -190,6 +190,7 @@ class ChurchProfile {
     this.phone,
     this.whatsapp,
     this.website,
+    this.tagline,
   });
 
   final String name;
@@ -197,6 +198,9 @@ class ChurchProfile {
   final String? phone;
   final String? whatsapp;
   final String? website;
+
+  /// A line under the church's name on Home, such as its motto; may hold a line break.
+  final String? tagline;
 }
 
 /// An entry of the Home screen's "Recently opened" list.

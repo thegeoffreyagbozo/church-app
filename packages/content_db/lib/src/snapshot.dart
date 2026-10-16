@@ -18,7 +18,7 @@ const snapshotColumns = {
   'hymn_sections': 'id,hymn_id,section_type,section_number,position,lyrics',
   'readings': 'id,kind,number,title,scripture_ref,is_public_domain,sort_order',
   'reading_parts': 'id,reading_id,position,number,speaker,body,scripture_ref',
-  'church': 'id,name,email,phone,website,socials',
+  'church': 'id,name,email,phone,website,socials,tagline',
 };
 
 /// A church's published content, table by table, as the Supabase API returns it.
@@ -215,6 +215,7 @@ Future<ImportSummary> importSnapshot(
             phone: Value(_text(r['phone'])),
             whatsapp: Value(_text(socials?['whatsapp'])),
             website: Value(_text(r['website'])),
+            tagline: Value(_text(r['tagline'])),
           ),
         );
       }

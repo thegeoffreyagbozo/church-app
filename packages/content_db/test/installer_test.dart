@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:content_db/content_db.dart';
 import 'package:drift/native.dart';
+import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
 
 import 'helpers.dart';
@@ -106,6 +107,34 @@ void main() {
         expect(await UserData(db).settings(), {'theme': 'night'});
         final recent = await ContentCatalog(db).recentlyOpened();
         expect(recent.single.id, 'hymn-41');
+      });
+    },
+  );
+
+  test(
+    'replaces a copy from before the church tagline, keeping settings',
+    () async {
+      final book = await bundle(october);
+      await installer.ensureInstalled(
+        bundledBuiltAt: october,
+        loadBundle: () async => book,
+      );
+      await withPhoneDb((db) => UserData(db).saveSetting('theme', 'night'));
+      // The phone's copy as schema 1 built it: no tagline column.
+      sqlite3.open(phonePath)
+        ..execute('ALTER TABLE church DROP COLUMN tagline')
+        ..execute('PRAGMA user_version = 1')
+        ..close();
+
+      final outcome = await installer.ensureInstalled(
+        bundledBuiltAt: october,
+        loadBundle: () async => book,
+      );
+
+      expect(outcome, InstallOutcome.updated);
+      await withPhoneDb((db) async {
+        expect((await ContentCatalog(db).church())!.name, 'Grace Chapel');
+        expect(await UserData(db).settings(), {'theme': 'night'});
       });
     },
   );

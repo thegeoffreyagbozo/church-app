@@ -1,4 +1,5 @@
 import 'package:content_db/content_db.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:shared/shared.dart';
 import 'package:test/test.dart';
 
@@ -113,6 +114,15 @@ void main() {
 
     expect(church.name, 'Grace Chapel');
     expect(church.email, 'hello@example.church');
+    expect(church.tagline, isNull);
+  });
+
+  test("reads the church's tagline", () async {
+    await db
+        .update(db.church)
+        .write(const ChurchCompanion(tagline: Value('Where all\nare welcome')));
+
+    expect((await catalog.church())!.tagline, 'Where all\nare welcome');
   });
 
   test(

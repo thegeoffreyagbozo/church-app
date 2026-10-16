@@ -25,7 +25,7 @@ class ContentDatabase extends _$ContentDatabase {
   ContentDatabase(super.executor);
 
   /// Stamped into every built file. Bump it with a migration when a table changes.
-  static const version = 1;
+  static const version = 2;
 
   @override
   int get schemaVersion => version;

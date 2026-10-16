@@ -94,6 +94,46 @@ void main() {
     expect(church.whatsapp, '+233 20 000 0000');
   });
 
+  /// The sample with its church row changed by [change].
+  ContentSnapshot sampleWithChurch(ApiRow Function(ApiRow row) change) {
+    final sample = loadSample();
+    return ContentSnapshot(
+      hymnals: sample.hymnals,
+      categories: sample.categories,
+      hymns: sample.hymns,
+      sections: sample.sections,
+      readings: sample.readings,
+      parts: sample.parts,
+      church: [change(sample.church.single)],
+    );
+  }
+
+  test("copies the church's tagline, keeping its line break", () async {
+    await importSnapshot(
+      db,
+      sampleWithChurch(
+        (row) => {...row, 'tagline': 'Where all are welcome\nin Christ'},
+      ),
+    );
+
+    final church = await db.select(db.church).getSingle();
+    expect(church.tagline, 'Where all are welcome\nin Christ');
+  });
+
+  test('stores a blank tagline as none', () async {
+    await importSnapshot(
+      db,
+      sampleWithChurch((row) => {...row, 'tagline': '  '}),
+    );
+
+    final church = await db.select(db.church).getSingle();
+    expect(church.tagline, isNull);
+  });
+
+  test("asks the API for the church's tagline", () {
+    expect(snapshotColumns['church']!.split(','), contains('tagline'));
+  });
+
   test('importing again replaces the previous content', () async {
     await importSnapshot(db, loadSample());
     final smaller = ContentSnapshot(
