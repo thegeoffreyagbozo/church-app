@@ -3,6 +3,5 @@
   "APP_NAME": "Example Church",
   "APP_ID": "com.example.churchapp",
   "BRAND_PRIMARY": "#24426B",
-  "BRAND_ACCENT": "#8E2C3A",
-  "CHURCH_TAGLINE": ""
+  "BRAND_ACCENT": "#8E2C3A"
 }

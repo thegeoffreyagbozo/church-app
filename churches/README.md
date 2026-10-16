@@ -21,7 +21,9 @@ the build machine, with a private backup.
 | `APP_ID` | Package ID: the church's domain reversed (Android now, iOS from piece 3) |
 | `BRAND_PRIMARY` | Numbers, buttons and the reading band, as `#RRGGBB` |
 | `BRAND_ACCENT` | Kickers and verse numbers, as `#RRGGBB` |
-| `CHURCH_TAGLINE` | Optional line under the church name on Home; leave empty for none |
+
+The church's name and the line under it on Home (its motto, say) are church content, not
+settings: they come from the `church` row of its Supabase project (`name`, `tagline`).
 
 The app adjusts both colours until all text on Paper and Night meets WCAG AA, so any brand
 colours work. Without a settings file the app uses neutral ink blue and oxblood.
