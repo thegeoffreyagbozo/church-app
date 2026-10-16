@@ -231,7 +231,10 @@ class _RecentList extends ConsumerWidget {
         const SizedBox(height: 4),
         // Only once the list has loaded, so it never flashes up before someone's list.
         if (recent.hasValue && items.isEmpty)
-          _NothingOpened(onFindHymn: onFindHymn),
+          Center(
+            heightFactor: 1.5,
+            child: _NothingOpened(onFindHymn: onFindHymn),
+          ),
         for (final item in items)
           ItemRow(
             number: item.number,
