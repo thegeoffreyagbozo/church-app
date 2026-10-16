@@ -59,7 +59,7 @@ class SectionListScreen extends ConsumerWidget {
                 side,
                 0,
                 side,
-                110 + MediaQuery.paddingOf(context).bottom,
+                listBottomPadding(context),
               ),
               sliver: SliverList.builder(
                 itemCount: hymns.length,

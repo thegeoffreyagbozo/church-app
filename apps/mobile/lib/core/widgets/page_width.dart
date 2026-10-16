@@ -9,3 +9,8 @@ double sidePadding(
   double min = 20,
   double maxWidth = 680,
 }) => math.max(min, (MediaQuery.sizeOf(context).width - maxWidth) / 2);
+
+/// Space after the last item of a list on a tab, so it scrolls clear of the bottom
+/// edge.
+double listBottomPadding(BuildContext context) =>
+    24 + MediaQuery.paddingOf(context).bottom;

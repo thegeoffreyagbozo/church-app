@@ -80,7 +80,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 sidePadding(context),
                 16,
                 sidePadding(context),
-                110 + MediaQuery.paddingOf(context).bottom,
+                listBottomPadding(context),
               ),
               children: [
                 const _ChurchHeader(),
