@@ -169,7 +169,14 @@ class _SectionChips extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = HymnalTheme.of(context);
-    final sections = ref.watch(sectionsProvider).value ?? const [];
+    final all = ref.watch(sectionsProvider).value ?? const <Section>[];
+    // The main series first, then the other numbered series, then unnumbered pieces
+    // such as service music; each group in book order.
+    final sections = [
+      ...all.where((s) => s.isDefault),
+      ...all.where((s) => !s.isDefault && s.isNumbered),
+      ...all.where((s) => !s.isDefault && !s.isNumbered),
+    ];
     return Wrap(
       spacing: 8,
       runSpacing: 8,

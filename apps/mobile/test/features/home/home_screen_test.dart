@@ -120,13 +120,21 @@ void main() {
     );
   });
 
-  testWidgets('lists sections in book order', (tester) async {
-    await pumpApp(tester, db);
+  testWidgets(
+    'lists the main hymns first, then other numbered sections, then the rest',
+    (tester) async {
+      await pumpApp(tester, db);
 
-    final service = tester.getTopLeft(onHome('Service Music'));
-    final hymns = tester.getTopLeft(onHome('Hymns'));
-    expect(service.dy < hymns.dy || service.dx < hymns.dx, isTrue);
-  });
+      /// Whether chip [a] comes before chip [b] in reading order.
+      bool before(Offset a, Offset b) =>
+          a.dy < b.dy || (a.dy == b.dy && a.dx < b.dx);
+      final hymns = tester.getTopLeft(onHome('Hymns'));
+      final supplementary = tester.getTopLeft(onHome('Supplementary Hymns'));
+      final service = tester.getTopLeft(onHome('Service Music'));
+      expect(before(hymns, supplementary), isTrue);
+      expect(before(supplementary, service), isTrue);
+    },
+  );
 
   testWidgets('a numbered section lists its hymns by number', (tester) async {
     await pumpApp(tester, db);
