@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Android 12 and later draw the launcher icon on this background while the app starts. -->
+    <!-- Android 12 and later draw the launcher icon, and the church's wordmark if it has one,
+         on this background while the app starts. -->
     <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">@drawable/launch_background</item>
-        <item name="android:windowSplashScreenBackground">@color/paper</item>
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+        <item name="android:windowSplashScreenBrandingImage">@drawable/splash_branding</item>
     </style>
 </resources>

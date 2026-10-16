@@ -7,9 +7,10 @@ the build machine, with a private backup.
   `--dart-define-from-file`.
 - `prod.json`: that church's backend (added with per-church builds, piece 3).
 - `branding/`: the church's logo and icons, under the fixed names below.
-- `android/`: made on the build machine. `res/` holds the launcher icons, written by
+- `android/`: made on the build machine. `res/` holds the launcher icons and the launch
+  screen (the church's colour, its logo and its wordmark), written by
   `dart run tool/church_branding.dart ../../churches/<slug>` from `apps/mobile`; run it
-  again after changing an icon. `key.properties` and `upload-keystore.jks` are the church's
+  again after changing an image. `key.properties` and `upload-keystore.jks` are the church's
   release key (see `apps/mobile/README.md`); keep a private backup. Builds made with the
   church's settings file use both: Gradle finds the folder whose `church.json` has the
   build's `APP_ID`.
@@ -29,7 +30,8 @@ colours work. Without a settings file the app uses neutral ink blue and oxblood.
 
 | File | What it is |
 |---|---|
-| `icon.png` | 1024 x 1024: the whole icon on its background, for Android before 8 |
+| `icon.png` | 1024 x 1024 (at least 960): the whole icon on its background, for Android before 8 |
 | `icon_foreground.png` | 1024 x 1024: the artwork on transparent, inside the central circle of about 626 px; Android draws it on `BRAND_PRIMARY` |
 | `icon_monochrome.png` | 1024 x 1024: a one-colour silhouette on transparent, for Android 13 themed icons |
+| `splash_branding.png` | Optional, 800 x 320: the church's wordmark, white on transparent, under the logo on the launch screen (on `BRAND_PRIMARY`) |
 | `logo.svg`, `logo.png`, `glyph.svg` | The logo and the cross alone, for later (iOS, notifications) |

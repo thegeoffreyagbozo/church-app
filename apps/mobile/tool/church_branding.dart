@@ -46,12 +46,17 @@ const _densities = {
   'xxxhdpi': 4.0,
 };
 
-/// The legacy icon (Android 7) is 48 dp; adaptive icon layers are 108 dp.
+/// The legacy icon (Android 7) is 48 dp; adaptive icon layers are 108 dp. The logo on
+/// the launch screen of Android before 12 is 240 dp, the size Android 12 and later draw
+/// the icon on their splash; the wordmark under it is 200 x 80 dp, their branding size.
 const _legacyDp = 48;
 const _layerDp = 108;
+const _splashLogoDp = 240;
+const _wordmarkDp = (width: 200, height: 80);
 
-/// The largest file written, a layer at xxxhdpi: smaller images would be blown up.
-const _minimumSize = _layerDp * 4;
+/// The largest square file written, the splash logo at xxxhdpi: smaller images would
+/// be blown up.
+const _minimumSize = _splashLogoDp * 4;
 
 const _adaptiveIcon = '''
 <?xml version="1.0" encoding="utf-8"?>
@@ -62,13 +67,14 @@ const _adaptiveIcon = '''
 </adaptive-icon>
 ''';
 
-/// Writes [church]'s launcher icons into `<church>/android/res`, replacing any earlier
-/// output, and returns how many files it wrote.
+/// Writes [church]'s launcher icons and launch screen into `<church>/android/res`,
+/// replacing any earlier output, and returns how many files it wrote.
 int writeAndroidBranding(Directory church) {
   final brand = _brandPrimary(church);
   final icon = _readSquare(church, 'icon.png');
   final foreground = _readSquare(church, 'icon_foreground.png');
   final monochrome = _readSquare(church, 'icon_monochrome.png');
+  final wordmark = _readWordmark(church);
 
   // Launchers before Android 8 show the icon as it is, so fill any transparency with the
   // brand colour, the same colour as the adaptive icon's background.
@@ -87,30 +93,74 @@ int writeAndroidBranding(Directory church) {
     written++;
   }
 
-  for (final MapEntry(key: density, value: scale) in _densities.entries) {
-    final legacySize = (_legacyDp * scale).round();
-    final layerSize = (_layerDp * scale).round();
-    write(
-      'mipmap-$density/ic_launcher.png',
-      img.encodePng(_shrink(legacy, legacySize)),
-    );
-    write(
-      'mipmap-$density/ic_launcher_foreground.png',
-      img.encodePng(_shrink(foreground, layerSize)),
-    );
-    write(
-      'mipmap-$density/ic_launcher_monochrome.png',
-      img.encodePng(_shrink(monochrome, layerSize)),
+  void writeSizes(String name, img.Image image, int widthDp, int heightDp) {
+    final weighted = _weightByOpacity(image);
+    for (final MapEntry(key: density, value: scale) in _densities.entries) {
+      final small = _shrink(
+        weighted,
+        (widthDp * scale).round(),
+        (heightDp * scale).round(),
+        opaque: image.numChannels == 3,
+      );
+      final [folder, file] = name.split('/');
+      write('$folder-$density/$file', img.encodePng(small));
+    }
+  }
+
+  writeSizes('mipmap/ic_launcher.png', legacy, _legacyDp, _legacyDp);
+  writeSizes(
+    'mipmap/ic_launcher_foreground.png',
+    foreground,
+    _layerDp,
+    _layerDp,
+  );
+  writeSizes(
+    'mipmap/ic_launcher_monochrome.png',
+    monochrome,
+    _layerDp,
+    _layerDp,
+  );
+  writeSizes(
+    'drawable/splash_logo.png',
+    foreground,
+    _splashLogoDp,
+    _splashLogoDp,
+  );
+  if (wordmark != null) {
+    writeSizes(
+      'drawable/splash_branding.png',
+      wordmark,
+      _wordmarkDp.width,
+      _wordmarkDp.height,
     );
   }
   write('mipmap-anydpi-v26/ic_launcher.xml', utf8.encode(_adaptiveIcon));
   write(
-    'values/ic_launcher_background.xml',
+    'values/church_colors.xml',
     utf8.encode(
       '<?xml version="1.0" encoding="utf-8"?>\n'
       '<resources>\n'
       '    <color name="ic_launcher_background">${brand.hex}</color>\n'
+      '    <color name="splash_background">${brand.hex}</color>\n'
       '</resources>\n',
+    ),
+  );
+  // Android before 12 shows this while the app starts; Android 12 and later draw the
+  // icon on splash_background and the wordmark from their own theme (styles.xml).
+  write(
+    'drawable-v21/launch_background.xml',
+    utf8.encode(
+      '<?xml version="1.0" encoding="utf-8"?>\n'
+      '<layer-list xmlns:android="http://schemas.android.com/apk/res/android">\n'
+      '    <item android:drawable="@color/splash_background" />\n'
+      '    <item>\n'
+      '        <bitmap android:gravity="center" android:src="@drawable/splash_logo" />\n'
+      '    </item>\n'
+      '${wordmark == null ? '' : '    <item android:bottom="48dp">\n'
+                '        <bitmap android:gravity="bottom|center_horizontal"\n'
+                '            android:src="@drawable/splash_branding" />\n'
+                '    </item>\n'}'
+      '</layer-list>\n',
     ),
   );
   return written;
@@ -167,9 +217,29 @@ img.Image _readSquare(Directory church, String name) {
   return image.convert(format: img.Format.uint8, numChannels: 4);
 }
 
-/// [image] shrunk to [size] square. Colours are averaged weighted by their opacity, so
-/// artwork keeps its colour where it fades into transparency instead of greying.
-img.Image _shrink(img.Image image, int size) {
+/// The optional wordmark under the splash logo, `branding/splash_branding.png`: white
+/// on transparent, 800 x 320 (200 x 80 dp at xxxhdpi), or larger in the same 5:2 shape.
+img.Image? _readWordmark(Directory church) {
+  final file = File('${church.path}/branding/splash_branding.png');
+  if (!file.existsSync()) return null;
+  final image = img.decodePng(file.readAsBytesSync());
+  if (image == null) {
+    throw BrandingException('${file.path} is not a PNG image.');
+  }
+  final wide = _wordmarkDp.width * 4;
+  final high = _wordmarkDp.height * 4;
+  if (image.width < wide || image.width * high != image.height * wide) {
+    throw BrandingException(
+      '${file.path} must be ${wide}x$high (or larger in the same 5:2 shape), '
+      'not ${image.width}x${image.height}.',
+    );
+  }
+  return image.convert(format: img.Format.uint8, numChannels: 4);
+}
+
+/// [image] with each colour multiplied by its opacity, ready for [_shrink]. Averaging
+/// these keeps artwork its own colour where it fades into transparency.
+img.Image _weightByOpacity(img.Image image) {
   final weighted = image.convert(format: img.Format.uint8, numChannels: 4);
   for (final p in weighted) {
     final opacity = p.a / 255;
@@ -178,10 +248,21 @@ img.Image _shrink(img.Image image, int size) {
       ..g = (p.g * opacity).round()
       ..b = (p.b * opacity).round();
   }
+  return weighted;
+}
+
+/// [weighted] (from [_weightByOpacity]) shrunk to [width] x [height], with its colours
+/// restored; without an alpha channel when the source was [opaque].
+img.Image _shrink(
+  img.Image weighted,
+  int width,
+  int height, {
+  required bool opaque,
+}) {
   final small = img.copyResize(
     weighted,
-    width: size,
-    height: size,
+    width: width,
+    height: height,
     interpolation: img.Interpolation.average,
   );
   for (final p in small) {
@@ -192,5 +273,5 @@ img.Image _shrink(img.Image image, int size) {
       ..g = (p.g / opacity).round().clamp(0, 255)
       ..b = (p.b / opacity).round().clamp(0, 255);
   }
-  return image.numChannels == 3 ? small.convert(numChannels: 3) : small;
+  return opaque ? small.convert(numChannels: 3) : small;
 }
