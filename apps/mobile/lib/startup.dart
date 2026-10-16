@@ -19,11 +19,15 @@ class StartupApp extends StatefulWidget {
   const StartupApp({
     super.key,
     this.open = openBundledContent,
+    this.loadLogo = loadChurchLogo,
     this.onReady,
     this.overrides = const [],
   });
 
   final Future<ContentDatabase> Function() open;
+
+  /// Loads the church's logo for Home ([churchLogoProvider]).
+  final Future<ImageProvider?> Function() loadLogo;
 
   /// Called once, when the hymn book is open or has failed to open. `main` holds the
   /// first frame until then, so the native splash leads straight to Home.
@@ -37,14 +41,16 @@ class StartupApp extends StatefulWidget {
 }
 
 class _StartupAppState extends State<StartupApp> {
-  late Future<(ContentDatabase, ReadingSettings)> _ready = _load();
+  late Future<(ContentDatabase, ReadingSettings, ImageProvider?)> _ready =
+      _load();
   var _released = false;
 
-  Future<(ContentDatabase, ReadingSettings)> _load() async {
+  Future<(ContentDatabase, ReadingSettings, ImageProvider?)> _load() async {
     try {
+      final logo = widget.loadLogo();
       final db = await widget.open();
       final settings = ReadingSettings.fromMap(await UserData(db).settings());
-      return (db, settings);
+      return (db, settings, await logo);
     } finally {
       if (!_released) {
         _released = true;
@@ -64,12 +70,13 @@ class _StartupAppState extends State<StartupApp> {
     return FutureBuilder(
       future: _ready,
       builder: (context, snapshot) {
-        if (snapshot.data case (final db, final settings)) {
+        if (snapshot.data case (final db, final settings, final logo)) {
           return ProviderScope(
             retry: (_, _) => null,
             overrides: [
               contentDatabaseProvider.overrideWithValue(db),
               initialSettingsProvider.overrideWithValue(settings),
+              churchLogoProvider.overrideWithValue(logo),
               ...widget.overrides,
             ],
             child: const HymnalApp(),

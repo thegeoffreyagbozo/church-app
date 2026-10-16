@@ -30,7 +30,7 @@ colours work. Without a settings file the app uses neutral ink blue and oxblood.
 
 | File | What it is |
 |---|---|
-| `icon.png` | 1024 x 1024 (at least 960): the whole icon on its background, for Android before 8 |
+| `icon.png` | 1024 x 1024 (at least 960): the whole icon on its background, for Android before 8; its middle is also cut into the round logo on Home |
 | `icon_foreground.png` | 1024 x 1024: the artwork on transparent, inside the central circle of about 626 px; Android draws it on `BRAND_PRIMARY` |
 | `icon_monochrome.png` | 1024 x 1024: a one-colour silhouette on transparent, for Android 13 themed icons |
 | `splash_branding.png` | Optional, 800 x 320: the church's wordmark, white on transparent, under the logo on the launch screen (on `BRAND_PRIMARY`) |

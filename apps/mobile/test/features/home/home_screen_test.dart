@@ -1,6 +1,9 @@
+import 'package:church_app/core/config/church_config.dart';
 import 'package:church_app/features/home/presentation/home_screen.dart';
 import 'package:content_db/content_db.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 
 import '../../helpers/test_app.dart';
 
@@ -25,6 +28,68 @@ void main() {
     expect(
       find.text('Hymns and readings you open will appear here.'),
       findsOneWidget,
+    );
+  });
+
+  testWidgets('shows the church logo left of its name', (tester) async {
+    final logo = MemoryImage(img.encodePng(img.Image(width: 4, height: 4)));
+    await pumpApp(
+      tester,
+      db,
+      overrides: [churchLogoProvider.overrideWithValue(logo)],
+    );
+
+    final image = find.descendant(
+      of: find.byType(HomeScreen),
+      matching: find.byType(Image),
+    );
+    expect(tester.widget<Image>(image).image, logo);
+    final logoRect = tester.getRect(image);
+    final nameRect = tester.getRect(find.text('Grace Chapel'));
+    expect(logoRect.right, lessThan(nameRect.left));
+    expect(logoRect.top, lessThan(nameRect.center.dy));
+    expect(logoRect.bottom, greaterThan(nameRect.center.dy));
+  });
+
+  testWidgets('starts the tagline under the logo, not under the name', (
+    tester,
+  ) async {
+    final logo = MemoryImage(img.encodePng(img.Image(width: 4, height: 4)));
+    await pumpApp(
+      tester,
+      db,
+      overrides: [
+        churchLogoProvider.overrideWithValue(logo),
+        churchConfigProvider.overrideWithValue(
+          const ChurchConfig(tagline: 'Hitherto hath the Lord helped us'),
+        ),
+      ],
+    );
+
+    final logoRect = tester.getRect(
+      find.descendant(
+        of: find.byType(HomeScreen),
+        matching: find.byType(Image),
+      ),
+    );
+    final taglineRect = tester.getRect(
+      find.text('Hitherto hath the Lord helped us'),
+    );
+    expect(taglineRect.left, logoRect.left);
+    expect(taglineRect.top, greaterThanOrEqualTo(logoRect.bottom));
+  });
+
+  testWidgets('shows the name alone when the church has no logo', (
+    tester,
+  ) async {
+    await pumpApp(tester, db);
+
+    expect(
+      find.descendant(
+        of: find.byType(HomeScreen),
+        matching: find.byType(Image),
+      ),
+      findsNothing,
     );
   });
 

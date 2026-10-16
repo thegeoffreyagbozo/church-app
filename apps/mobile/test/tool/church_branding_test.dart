@@ -194,6 +194,22 @@ void main() {
     expect(() => writeAndroidBranding(church), failsWith('800x320'));
   });
 
+  test('cuts the Home logo as a disc from the middle of the icon', () {
+    writeAppLogo(church, Directory(path('assets')));
+
+    final logo = readPng('assets/church_logo.png');
+    expect((logo.width, logo.height), (192, 192));
+    final centre = logo.getPixel(96, 96);
+    expect((centre.r, centre.g, centre.b, centre.a), (0x24, 0x42, 0x6b, 255));
+    expect(logo.getPixel(2, 2).a, 0, reason: 'a corner is outside the disc');
+    expect(logo.getPixel(20, 20).a, 0, reason: 'still outside the disc');
+    expect(
+      logo.getPixel(3, 96).a,
+      greaterThan(0),
+      reason: 'the disc is full width',
+    );
+  });
+
   test('replaces what an earlier run left behind', () {
     final stale = File(path('android/res/mipmap-mdpi/old.png'))
       ..createSync(recursive: true);

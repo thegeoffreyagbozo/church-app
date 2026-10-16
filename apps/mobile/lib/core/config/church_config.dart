@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Values from the church settings file (ADR 0007), passed to the build with
@@ -48,3 +50,19 @@ Color? parseHexColor(String value) {
 final churchConfigProvider = Provider<ChurchConfig>(
   (ref) => ChurchConfig.fromEnvironment(),
 );
+
+/// The church's round logo for Home, made by `tool/church_branding.dart`. `StartupApp`
+/// loads it once ([loadChurchLogo]); null when the build has none, as in tests.
+final churchLogoProvider = Provider<ImageProvider?>((ref) => null);
+
+/// Loads `assets/content/church_logo.png`, or null when the build has no logo.
+Future<ImageProvider?> loadChurchLogo() async {
+  try {
+    final data = await rootBundle.load('assets/content/church_logo.png');
+    return MemoryImage(
+      data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+    );
+  } on FlutterError {
+    return null;
+  }
+}
