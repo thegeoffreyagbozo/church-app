@@ -20,6 +20,20 @@ const _layerSizes = {
   'xxhdpi': 324,
   'xxxhdpi': 432,
 };
+const _splashLogoSizes = {
+  'mdpi': 240,
+  'hdpi': 360,
+  'xhdpi': 480,
+  'xxhdpi': 720,
+  'xxxhdpi': 960,
+};
+const _wordmarkSizes = {
+  'mdpi': (200, 80),
+  'hdpi': (300, 120),
+  'xhdpi': (400, 160),
+  'xxhdpi': (600, 240),
+  'xxxhdpi': (800, 320),
+};
 
 void main() {
   late Directory church;
@@ -44,9 +58,9 @@ void main() {
     church = Directory.systemTemp.createTempSync('church_branding_test');
     Directory(path('branding')).createSync();
     writeBrand('#24426b');
-    writePng('icon.png', _icon(512));
-    writePng('icon_foreground.png', _artwork(512));
-    writePng('icon_monochrome.png', _artwork(512));
+    writePng('icon.png', _icon(1024));
+    writePng('icon_foreground.png', _artwork(1024));
+    writePng('icon_monochrome.png', _artwork(1024));
   });
   tearDown(() => church.deleteSync(recursive: true));
 
@@ -104,11 +118,80 @@ void main() {
     expect(adaptive, contains('@mipmap/ic_launcher_foreground'));
     expect(adaptive, contains('@mipmap/ic_launcher_monochrome'));
     expect(
-      File(
-        path('android/res/values/ic_launcher_background.xml'),
-      ).readAsStringSync(),
+      File(path('android/res/values/church_colors.xml')).readAsStringSync(),
       contains('<color name="ic_launcher_background">#24426B</color>'),
     );
+  });
+
+  test('gives the splash the brand colour', () {
+    writeAndroidBranding(church);
+
+    expect(
+      File(path('android/res/values/church_colors.xml')).readAsStringSync(),
+      contains('<color name="splash_background">#24426B</color>'),
+    );
+  });
+
+  test('centres the logo on the launch screen of older Android', () {
+    writeAndroidBranding(church);
+
+    final launch = File(
+      path('android/res/drawable-v21/launch_background.xml'),
+    ).readAsStringSync();
+    expect(launch, contains('@color/splash_background'));
+    expect(launch, contains('@drawable/splash_logo'));
+    for (final MapEntry(key: density, value: size)
+        in _splashLogoSizes.entries) {
+      final logo = readPng('android/res/drawable-$density/splash_logo.png');
+      expect((logo.width, logo.height), (size, size), reason: density);
+    }
+  });
+
+  test('adds the wordmark to the splash when the church has one', () {
+    writePng('splash_branding.png', _artwork(800, 320));
+
+    writeAndroidBranding(church);
+
+    expect(
+      File(
+        path('android/res/drawable-v21/launch_background.xml'),
+      ).readAsStringSync(),
+      contains('@drawable/splash_branding'),
+    );
+    for (final MapEntry(key: density, value: (width, height))
+        in _wordmarkSizes.entries) {
+      final wordmark = readPng(
+        'android/res/drawable-$density/splash_branding.png',
+      );
+      expect((wordmark.width, wordmark.height), (width, height));
+    }
+  });
+
+  test('leaves the wordmark out when the church has none', () {
+    writeAndroidBranding(church);
+
+    expect(
+      File(
+        path('android/res/drawable-v21/launch_background.xml'),
+      ).readAsStringSync(),
+      isNot(contains('splash_branding')),
+    );
+    expect(
+      File(path('android/res/drawable-mdpi/splash_branding.png')).existsSync(),
+      isFalse,
+    );
+  });
+
+  test('refuses a wordmark that is not 5:2', () {
+    writePng('splash_branding.png', _artwork(800, 400));
+
+    expect(() => writeAndroidBranding(church), failsWith('800x320'));
+  });
+
+  test('refuses a wordmark smaller than 800x320', () {
+    writePng('splash_branding.png', _artwork(400, 160));
+
+    expect(() => writeAndroidBranding(church), failsWith('800x320'));
   });
 
   test('replaces what an earlier run left behind', () {
@@ -130,15 +213,15 @@ void main() {
   });
 
   test('refuses an image that is not square', () {
-    writePng('icon.png', _icon(512, 400));
+    writePng('icon.png', _icon(1024, 800));
 
     expect(() => writeAndroidBranding(church), failsWith('square'));
   });
 
-  test('refuses an image smaller than the largest layer', () {
-    writePng('icon_foreground.png', _artwork(300));
+  test('refuses an image smaller than the largest file made from it', () {
+    writePng('icon_foreground.png', _artwork(600));
 
-    expect(() => writeAndroidBranding(church), failsWith('432'));
+    expect(() => writeAndroidBranding(church), failsWith('960'));
   });
 
   test('refuses a brand colour that is not #RRGGBB', () {
@@ -168,15 +251,16 @@ img.Image _icon(int width, [int? height]) {
   return image;
 }
 
-/// A white square in the middle third of a clear canvas.
-img.Image _artwork(int size) {
-  final image = img.Image(width: size, height: size, numChannels: 4);
+/// A white rectangle in the middle third of a clear canvas.
+img.Image _artwork(int width, [int? height]) {
+  final h = height ?? width;
+  final image = img.Image(width: width, height: h, numChannels: 4);
   img.fillRect(
     image,
-    x1: size ~/ 3,
-    y1: size ~/ 3,
-    x2: 2 * size ~/ 3,
-    y2: 2 * size ~/ 3,
+    x1: width ~/ 3,
+    y1: h ~/ 3,
+    x2: 2 * width ~/ 3,
+    y2: 2 * h ~/ 3,
     color: img.ColorRgba8(255, 255, 255, 255),
   );
   return image;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Paper, the app's background (lib/core/theme/palette.dart), so the launch screen
-         matches the first screen Flutter draws. -->
-    <color name="paper">#FBF8F1</color>
+    <!-- The launch screen's colour: Paper, the app's background (lib/core/theme/palette.dart).
+         A church's branding (tool/church_branding.dart) replaces it with the church's colour. -->
+    <color name="splash_background">#FBF8F1</color>
 </resources>
