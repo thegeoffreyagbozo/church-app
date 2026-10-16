@@ -1,15 +1,18 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:image/image.dart' as img;
 
-/// Turns a church's branding into its Android launcher icons (ADR 0007).
+/// Turns a church's branding into its Android launcher icons and launch screen, and the
+/// logo on Home (ADR 0007).
 ///
 /// From `apps/mobile`: `dart run tool/church_branding.dart ../../churches/<slug>`.
-/// It reads `branding/icon.png`, `icon_foreground.png` and `icon_monochrome.png` and the
-/// church's `BRAND_PRIMARY`, and writes `android/res` in the church's folder. Gradle adds
-/// that folder to builds made with the church's settings file. Like the rest of the
-/// folder, it stays on the build machine.
+/// It reads `branding/icon.png`, `icon_foreground.png`, `icon_monochrome.png`, the
+/// optional `splash_branding.png` and the church's `BRAND_PRIMARY`. It writes
+/// `android/res` in the church's folder, which Gradle adds to builds made with the
+/// church's settings file, and `assets/content/church_logo.png`, which the app shows on
+/// Home. Both stay on the build machine (git-ignored).
 void main(List<String> arguments) {
   if (arguments.length != 1) {
     stderr.writeln(
@@ -21,7 +24,11 @@ void main(List<String> arguments) {
   final church = Directory(arguments.single);
   try {
     final written = writeAndroidBranding(church);
-    stdout.writeln('Wrote ${church.path}/android/res: $written files.');
+    writeAppLogo(church, Directory('assets/content'));
+    stdout.writeln(
+      'Wrote ${church.path}/android/res ($written files) and '
+      'assets/content/church_logo.png.',
+    );
   } on BrandingException catch (e) {
     stderr.writeln(e.message);
     exit(1);
@@ -78,9 +85,7 @@ int writeAndroidBranding(Directory church) {
 
   // Launchers before Android 8 show the icon as it is, so fill any transparency with the
   // brand colour, the same colour as the adaptive icon's background.
-  final legacy = img.Image(width: icon.width, height: icon.height)
-    ..clear(img.ColorRgb8(brand.r, brand.g, brand.b));
-  img.compositeImage(legacy, icon);
+  final legacy = _onBrand(icon, brand);
 
   final res = Directory('${church.path}/android/res');
   if (res.existsSync()) res.deleteSync(recursive: true);
@@ -164,6 +169,46 @@ int writeAndroidBranding(Directory church) {
     ),
   );
   return written;
+}
+
+/// The Home logo is 48 dp across at most; this is that at xxxhdpi.
+const _appLogoPx = 192;
+
+/// Writes the church's round logo for Home into `<assets>/church_logo.png`: the middle
+/// of `branding/icon.png`, cut to the circle Android shows as the launcher icon (72 of the
+/// 108 dp layer), so the two match.
+void writeAppLogo(Directory church, Directory assets) {
+  final brand = _brandPrimary(church);
+  final icon = _onBrand(_readSquare(church, 'icon.png'), brand);
+  final side = (icon.width * 72 / _layerDp).round();
+  final offset = (icon.width - side) ~/ 2;
+  final disc = img
+      .copyCrop(icon, x: offset, y: offset, width: side, height: side)
+      .convert(numChannels: 4);
+  final radius = side / 2;
+  for (final p in disc) {
+    final distance = sqrt(
+      pow(p.x + 0.5 - radius, 2) + pow(p.y + 0.5 - radius, 2),
+    );
+    // Fully opaque inside, clear outside, and a one-pixel soft edge between.
+    p.a = (255 * (radius - distance + 0.5).clamp(0.0, 1.0)).round();
+  }
+  final logo = _shrink(
+    _weightByOpacity(disc),
+    _appLogoPx,
+    _appLogoPx,
+    opaque: false,
+  );
+  File('${assets.path}/church_logo.png')
+    ..parent.createSync(recursive: true)
+    ..writeAsBytesSync(img.encodePng(logo));
+}
+
+/// [icon] on the brand colour, without an alpha channel.
+img.Image _onBrand(img.Image icon, ({int r, int g, int b, String hex}) brand) {
+  final flat = img.Image(width: icon.width, height: icon.height)
+    ..clear(img.ColorRgb8(brand.r, brand.g, brand.b));
+  return img.compositeImage(flat, icon);
 }
 
 /// `BRAND_PRIMARY` from the church's settings file, as `#RRGGBB`.

@@ -122,16 +122,33 @@ class _ChurchHeader extends ConsumerWidget {
     final theme = HymnalTheme.of(context);
     final name = ref.watch(churchProvider).value?.name;
     final tagline = ref.watch(churchConfigProvider).tagline;
+    final logo = ref.watch(churchLogoProvider);
+    final nameText = Semantics(
+      header: true,
+      child: Text(
+        name ?? AppLocalizations.of(context).appTitle,
+        style: theme.text.churchName,
+      ),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Semantics(
-          header: true,
-          child: Text(
-            name ?? AppLocalizations.of(context).appTitle,
-            style: theme.text.churchName,
+        if (logo == null)
+          nameText
+        else
+          Row(
+            children: [
+              // Decoration: the name beside it says the same.
+              Image(
+                image: logo,
+                width: 32,
+                height: 32,
+                excludeFromSemantics: true,
+              ),
+              const SizedBox(width: 10),
+              Expanded(child: nameText),
+            ],
           ),
-        ),
         if (tagline != null)
           Padding(
             padding: const EdgeInsets.only(top: 4),
