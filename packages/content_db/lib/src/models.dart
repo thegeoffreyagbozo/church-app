@@ -199,7 +199,8 @@ class ChurchProfile {
   final String? whatsapp;
   final String? website;
 
-  /// A line under the church's name on Home, such as its motto; may hold a line break.
+  /// A line under the church's name on Home, such as its motto. Stored on one line;
+  /// Home wraps it to the screen.
   final String? tagline;
 }
 

@@ -215,7 +215,7 @@ Future<ImportSummary> importSnapshot(
             phone: Value(_text(r['phone'])),
             whatsapp: Value(_text(socials?['whatsapp'])),
             website: Value(_text(r['website'])),
-            tagline: Value(_text(r['tagline'])),
+            tagline: Value(_oneLine(r['tagline'])),
           ),
         );
       }
@@ -247,3 +247,8 @@ String? _text(Object? value) {
   final text = (value as String?)?.trim();
   return text == null || text.isEmpty ? null : text;
 }
+
+/// [_text] on one line: line breaks and runs of spaces become a single space, so
+/// the screen decides where a line such as the tagline wraps.
+String? _oneLine(Object? value) =>
+    _text(value)?.replaceAll(RegExp(r'\s+'), ' ');

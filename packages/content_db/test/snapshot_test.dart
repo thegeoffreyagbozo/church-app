@@ -108,16 +108,16 @@ void main() {
     );
   }
 
-  test("copies the church's tagline, keeping its line break", () async {
+  test("joins the lines of a church's tagline into one", () async {
     await importSnapshot(
       db,
       sampleWithChurch(
-        (row) => {...row, 'tagline': 'Where all are welcome\nin Christ'},
+        (row) => {...row, 'tagline': ' Where all are welcome \n\tin  Christ'},
       ),
     );
 
     final church = await db.select(db.church).getSingle();
-    expect(church.tagline, 'Where all are welcome\nin Christ');
+    expect(church.tagline, 'Where all are welcome in Christ');
   });
 
   test('stores a blank tagline as none', () async {
