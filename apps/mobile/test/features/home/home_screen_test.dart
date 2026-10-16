@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 
 import '../../helpers/test_app.dart';
+import '../../helpers/text_lines.dart';
 
 void main() {
   late ContentDatabase db;
@@ -58,7 +59,7 @@ void main() {
     final logo = MemoryImage(img.encodePng(img.Image(width: 4, height: 4)));
     await db
         .update(db.church)
-        .write(const ChurchCompanion(tagline: Value('Where all\nare welcome')));
+        .write(const ChurchCompanion(tagline: Value('Where all are welcome')));
     await pumpApp(
       tester,
       db,
@@ -71,9 +72,23 @@ void main() {
         matching: find.byType(Image),
       ),
     );
-    final taglineRect = tester.getRect(find.text('Where all\nare welcome'));
+    final taglineRect = tester.getRect(find.text('Where all are welcome'));
     expect(taglineRect.left, logoRect.left);
     expect(taglineRect.top, greaterThanOrEqualTo(logoRect.bottom));
+  });
+
+  testWidgets('wraps a long tagline to the width of the phone', (tester) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    const tagline =
+        'Where all are welcome and every voice joins the song of praise';
+    await db
+        .update(db.church)
+        .write(const ChurchCompanion(tagline: Value(tagline)));
+    await pumpApp(tester, db);
+
+    expect(linesOf(tester, tagline), 2);
   });
 
   testWidgets('shows the name alone when the church has no logo', (
