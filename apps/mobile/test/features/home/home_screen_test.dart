@@ -1,6 +1,7 @@
 import 'package:church_app/core/config/church_config.dart';
 import 'package:church_app/features/home/presentation/home_screen.dart';
 import 'package:content_db/content_db.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
@@ -51,19 +52,17 @@ void main() {
     expect(logoRect.bottom, greaterThan(nameRect.center.dy));
   });
 
-  testWidgets('starts the tagline under the logo, not under the name', (
+  testWidgets("starts the church's tagline under the logo, not the name", (
     tester,
   ) async {
     final logo = MemoryImage(img.encodePng(img.Image(width: 4, height: 4)));
+    await db
+        .update(db.church)
+        .write(const ChurchCompanion(tagline: Value('Where all\nare welcome')));
     await pumpApp(
       tester,
       db,
-      overrides: [
-        churchLogoProvider.overrideWithValue(logo),
-        churchConfigProvider.overrideWithValue(
-          const ChurchConfig(tagline: 'Hitherto hath the Lord helped us'),
-        ),
-      ],
+      overrides: [churchLogoProvider.overrideWithValue(logo)],
     );
 
     final logoRect = tester.getRect(
@@ -72,9 +71,7 @@ void main() {
         matching: find.byType(Image),
       ),
     );
-    final taglineRect = tester.getRect(
-      find.text('Hitherto hath the Lord helped us'),
-    );
+    final taglineRect = tester.getRect(find.text('Where all\nare welcome'));
     expect(taglineRect.left, logoRect.left);
     expect(taglineRect.top, greaterThanOrEqualTo(logoRect.bottom));
   });

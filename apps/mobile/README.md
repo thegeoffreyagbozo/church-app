@@ -16,7 +16,7 @@ database built by `packages/content_db` and bundled as an asset.
    Without a Supabase project, use the public-domain sample instead:
    `--from-json packages/content_db/test/fixtures/sample_content.json`. The file is
    git-ignored because it is church content.
-2. Run with a church settings file (name, package ID, colours and tagline) and the
+2. Run with a church settings file (name, package ID and colours) and the
    environment config:
 
    ```bash

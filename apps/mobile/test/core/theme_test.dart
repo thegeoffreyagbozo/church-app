@@ -23,7 +23,6 @@ void main() {
 
     expect(config.primary, ChurchConfig.defaultPrimary);
     expect(config.accent, ChurchConfig.defaultAccent);
-    expect(config.tagline, isNull);
   });
 
   group('contrast', () {

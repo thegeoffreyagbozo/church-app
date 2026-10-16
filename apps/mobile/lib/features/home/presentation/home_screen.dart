@@ -120,8 +120,9 @@ class _ChurchHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = HymnalTheme.of(context);
-    final name = ref.watch(churchProvider).value?.name;
-    final tagline = ref.watch(churchConfigProvider).tagline;
+    final church = ref.watch(churchProvider).value;
+    final name = church?.name;
+    final tagline = church?.tagline;
     final logo = ref.watch(churchLogoProvider);
     final nameText = Semantics(
       header: true,

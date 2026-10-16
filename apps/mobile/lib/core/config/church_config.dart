@@ -9,10 +9,9 @@ class ChurchConfig {
   const ChurchConfig({
     this.primary = defaultPrimary,
     this.accent = defaultAccent,
-    this.tagline,
   });
 
-  /// Reads `BRAND_PRIMARY`, `BRAND_ACCENT` and `CHURCH_TAGLINE`.
+  /// Reads `BRAND_PRIMARY` and `BRAND_ACCENT`.
   factory ChurchConfig.fromEnvironment() => ChurchConfig(
     primary:
         parseHexColor(const String.fromEnvironment('BRAND_PRIMARY')) ??
@@ -20,10 +19,6 @@ class ChurchConfig {
     accent:
         parseHexColor(const String.fromEnvironment('BRAND_ACCENT')) ??
         defaultAccent,
-    tagline: switch (const String.fromEnvironment('CHURCH_TAGLINE').trim()) {
-      '' => null,
-      final tagline => tagline,
-    },
   );
 
   /// Neutral ink blue and oxblood, used until a church sets its own colours.
@@ -35,9 +30,6 @@ class ChurchConfig {
 
   /// Kickers and verse numbers.
   final Color accent;
-
-  /// A line under the church name on Home, such as a motto.
-  final String? tagline;
 }
 
 /// Parses "#RRGGBB" or "RRGGBB"; null for anything else.
