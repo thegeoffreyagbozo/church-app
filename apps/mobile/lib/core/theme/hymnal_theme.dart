@@ -48,6 +48,29 @@ ThemeData buildTheme(HymnalPalette palette, {bool legible = false}) {
     scaffoldBackgroundColor: palette.background,
     fontFamily: legible ? 'AtkinsonHyperlegible' : 'Inter',
     dividerTheme: DividerThemeData(color: palette.rule, thickness: 1, space: 1),
+    // The Android tab bar: a solid bar with the selected tab in the brand colour.
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: palette.surface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      indicatorColor: palette.primary.withValues(alpha: 0.14),
+      iconTheme: WidgetStateProperty.resolveWith(
+        (states) => IconThemeData(
+          color: states.contains(WidgetState.selected)
+              ? palette.primary
+              : palette.muted,
+        ),
+      ),
+      labelTextStyle: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected)
+            ? text.caption.copyWith(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: palette.primary,
+              )
+            : text.caption.copyWith(fontSize: 12),
+      ),
+    ),
     snackBarTheme: SnackBarThemeData(
       backgroundColor: palette.ink,
       contentTextStyle: text.body.copyWith(color: palette.background),

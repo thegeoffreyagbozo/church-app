@@ -33,7 +33,7 @@ class ReadingsScreen extends ConsumerWidget {
           sidePadding(context),
           16,
           sidePadding(context),
-          110 + MediaQuery.paddingOf(context).bottom,
+          listBottomPadding(context),
         ),
         children: [
           Semantics(
