@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:church_app/core/platform/platform_services.dart';
 import 'package:church_app/startup.dart';
 import 'package:content_db/content_db.dart';
@@ -45,5 +47,57 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('The hymn book could not be opened.'), findsOneWidget);
+  });
+
+  testWidgets('lets the first frame through once the book is open', (
+    tester,
+  ) async {
+    final opening = Completer<ContentDatabase>();
+    var released = 0;
+    await tester.pumpWidget(
+      StartupApp(
+        open: () => opening.future,
+        onReady: () => released++,
+        overrides: [
+          solidSurfacesProvider.overrideWith((ref) => false),
+          appVersionProvider.overrideWith((ref) => '1.0.0 (1)'),
+        ],
+      ),
+    );
+    await tester.pump();
+    expect(released, 0, reason: 'the splash stays while the book opens');
+
+    opening.complete(db);
+    await tester.pumpAndSettle();
+
+    expect(released, 1);
+    expect(find.text('Grace Chapel'), findsOneWidget);
+  });
+
+  testWidgets('lets the first frame through once when opening fails', (
+    tester,
+  ) async {
+    var attempts = 0;
+    var released = 0;
+    await tester.pumpWidget(
+      StartupApp(
+        open: () async {
+          if (attempts++ == 0) throw const NotEnoughSpaceException();
+          return db;
+        },
+        onReady: () => released++,
+        overrides: [
+          solidSurfacesProvider.overrideWith((ref) => false),
+          appVersionProvider.overrideWith((ref) => '1.0.0 (1)'),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(released, 1, reason: 'the message replaces the splash');
+
+    await tester.tap(find.text('Retry'));
+    await tester.pumpAndSettle();
+
+    expect(released, 1, reason: 'a retry has no splash to release');
   });
 }
