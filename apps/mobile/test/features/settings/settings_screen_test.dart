@@ -13,6 +13,9 @@ void main() {
 
   testWidgets('turning a setting off saves it', (tester) async {
     await pumpApp(tester, db, location: '/settings');
+    // Scroll the row up from behind the tab bar, as a person would.
+    await tester.drag(find.byType(ListView), const Offset(0, -300));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Number row above the keyboard'));
     await tester.pumpAndSettle();
@@ -69,4 +72,25 @@ void main() {
     expect(slider.min, 0.5);
     expect((slider.max - slider.min) / slider.divisions!, closeTo(0.1, 1e-9));
   });
+
+  testWidgets(
+    'says the text size changes only the words of hymns and readings',
+    (tester) async {
+      await pumpApp(tester, db, location: '/settings');
+
+      final hint = find.text(
+        'Changes the words of hymns and readings. The rest of the app follows '
+        "your phone's text size.",
+      );
+      expect(hint, findsOneWidget);
+      expect(
+        tester.getTopLeft(hint).dy,
+        greaterThan(tester.getTopLeft(find.text('Text size')).dy),
+      );
+      expect(
+        tester.getTopLeft(hint).dy,
+        lessThan(tester.getTopLeft(find.byType(Slider)).dy),
+      );
+    },
+  );
 }

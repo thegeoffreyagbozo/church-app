@@ -79,6 +79,7 @@
 
   "settingsReading": "Reading",
   "textSize": "Text size",
+  "textSizeHint": "Changes the words of hymns and readings. The rest of the app follows your phone's text size.",
   "textSizeSample": "How firm a foundation, ye saints of the Lord, is laid for your faith in His excellent Word!",
   "theme": "Theme",
   "themePaper": "Paper",

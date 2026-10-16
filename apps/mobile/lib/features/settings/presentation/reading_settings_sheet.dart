@@ -39,7 +39,8 @@ Future<void> showReadingSettingsSheet(BuildContext context) =>
       ),
     );
 
-/// A preview line at the chosen size and the slider (0.5 to 2.0, in steps of 10%).
+/// What the text size changes, a preview line at the chosen size and the slider (0.5
+/// to 2.0, in steps of 10%).
 class TextSizeControl extends ConsumerWidget {
   const TextSizeControl({super.key});
 
@@ -52,6 +53,8 @@ class TextSizeControl extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(l10n.textSize, style: theme.text.bodyStrong),
+        const SizedBox(height: 2),
+        Text(l10n.textSizeHint, style: theme.text.caption),
         const SizedBox(height: 8),
         MediaQuery(
           data: MediaQuery.of(context).copyWith(
