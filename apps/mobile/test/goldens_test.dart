@@ -86,4 +86,13 @@ void main() {
       await snap(name);
     });
   }
+
+  for (final size in [1.0, 2.0]) {
+    final name = 'home_empty_paper_${size.toInt()}x';
+    testWidgets(name, (tester) async {
+      phone(tester, textScale: size);
+      await pumpApp(tester, db);
+      await snap(name);
+    });
+  }
 }
