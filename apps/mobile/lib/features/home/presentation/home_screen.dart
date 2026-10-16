@@ -222,14 +222,17 @@ class _RecentList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = HymnalTheme.of(context);
-    final recent = ref.watch(recentProvider).value ?? const [];
+    final recent = ref.watch(recentProvider);
+    final items = recent.value ?? const <RecentItem>[];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(l10n.recentlyOpened.toUpperCase(), style: theme.text.listLabel),
         const SizedBox(height: 4),
-        if (recent.isEmpty) _NothingOpened(onFindHymn: onFindHymn),
-        for (final item in recent)
+        // Only once the list has loaded, so it never flashes up before someone's list.
+        if (recent.hasValue && items.isEmpty)
+          _NothingOpened(onFindHymn: onFindHymn),
+        for (final item in items)
           ItemRow(
             number: item.number,
             kicker: item.type == ItemType.reading

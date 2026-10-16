@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:church_app/core/config/church_config.dart';
+import 'package:church_app/core/database/content_providers.dart';
 import 'package:church_app/features/home/presentation/home_screen.dart';
 import 'package:content_db/content_db.dart';
 import 'package:drift/drift.dart' show Value;
@@ -32,6 +35,22 @@ void main() {
       find.text('Hymns and readings you open will appear here, newest first.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('shows no empty note while the recent list is still loading', (
+    tester,
+  ) async {
+    final recent = Completer<List<RecentItem>>();
+    await pumpApp(
+      tester,
+      db,
+      overrides: [recentProvider.overrideWith((ref) => recent.future)],
+    );
+    expect(find.text('Nothing opened yet'), findsNothing);
+
+    recent.complete(const []);
+    await tester.pumpAndSettle();
+    expect(find.text('Nothing opened yet'), findsOneWidget);
   });
 
   testWidgets('Find a hymn on the empty recent list opens the search', (
