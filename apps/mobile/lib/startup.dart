@@ -13,16 +13,21 @@ import 'features/settings/domain/reading_settings.dart';
 import 'features/settings/presentation/settings_controller.dart';
 import 'l10n/app_localizations.dart';
 
-/// Opens the hymn book, then starts the app with it. Shows a plain paper screen while
-/// opening and a message with Retry if that fails (spec section 8).
+/// Opens the hymn book, then starts the app with it. The native splash covers the wait
+/// ([onReady]); a message with Retry follows if opening fails (spec section 8).
 class StartupApp extends StatefulWidget {
   const StartupApp({
     super.key,
     this.open = openBundledContent,
+    this.onReady,
     this.overrides = const [],
   });
 
   final Future<ContentDatabase> Function() open;
+
+  /// Called once, when the hymn book is open or has failed to open. `main` holds the
+  /// first frame until then, so the native splash leads straight to Home.
+  final VoidCallback? onReady;
 
   /// Extra provider overrides, for tests.
   final List<Override> overrides;
@@ -33,11 +38,19 @@ class StartupApp extends StatefulWidget {
 
 class _StartupAppState extends State<StartupApp> {
   late Future<(ContentDatabase, ReadingSettings)> _ready = _load();
+  var _released = false;
 
   Future<(ContentDatabase, ReadingSettings)> _load() async {
-    final db = await widget.open();
-    final settings = ReadingSettings.fromMap(await UserData(db).settings());
-    return (db, settings);
+    try {
+      final db = await widget.open();
+      final settings = ReadingSettings.fromMap(await UserData(db).settings());
+      return (db, settings);
+    } finally {
+      if (!_released) {
+        _released = true;
+        widget.onReady?.call();
+      }
+    }
   }
 
   void _retry() {
