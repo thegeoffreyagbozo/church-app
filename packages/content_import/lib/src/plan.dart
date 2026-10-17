@@ -19,6 +19,7 @@ class Cleanup {
     this.parentId,
     this.keep, {
     this.orderColumn = 'position',
+    this.kind,
   });
   final String table;
   final String parentColumn;
@@ -27,6 +28,9 @@ class Cleanup {
 
   /// The column that orders the children (`sort_order` for sheet music).
   final String orderColumn;
+
+  /// Only children of this `kind`, so that other kinds (a hymn's audio, say) stay.
+  final String? kind;
 }
 
 /// Everything one import writes, in dependency order.
@@ -215,6 +219,7 @@ ImportPlan planImport(
           id,
           pieces.length,
           orderColumn: 'sort_order',
+          kind: 'sheet_music_image',
         ),
       );
     }
