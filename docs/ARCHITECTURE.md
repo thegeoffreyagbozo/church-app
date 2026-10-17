@@ -25,15 +25,16 @@ against — and a concrete, testable **v1.0.0 = offline hymnal** to build first.
 - **Client:** Flutter (one codebase → iOS + Android). **Offline-first is mandatory.**
 - **Backend:** Supabase (free tier to start) — Postgres + Auth + Storage + Edge Functions.
 - **Media:** Hybrid — **video** = YouTube/Vimeo links (free); **audio + downloadable files** =
-  Cloudflare R2 (10 GB free, **zero egress**); **sheet-music PDFs + thumbnails** = Supabase
-  Storage (public).
+  Cloudflare R2 (10 GB free, **zero egress**); **sheet-music images** = Supabase
+  Storage (public), bundled into the app (ADR 0011).
 - **Platforms:** release to **both iOS and Android** once ready (Flutter builds both from one
   codebase). Budget Apple Developer $99/yr + Google Play $25 one-time.
 - **Languages:** UI is **English-only at launch**; hymn *content* can be uploaded in Ghanaian
   languages (Twi/Ga/Ewe/Fante) via a per-hymn `language` field — content language is decoupled
   from UI locale, so this needs no extra UI translation work.
-- **Sheet music:** distributed as **PDF per hymn**, in a **public** bucket, **visible to
-  everyone** (not gated to choristers); rendered **offline** in the chorister view.
+- **Sheet music:** each hymn's printed music as **images cut from the choir book**, in a
+  **public** bucket, **visible to everyone** (not gated to choristers); **bundled into the app**
+  and shown offline in the Music view (ADR 0011).
 - **Payments (Ghana):** **Paystack** (Flutterwave kept swappable) — mobile money (MTN MoMo,
   Telecel Cash, AirtelTigo Money) + Visa/Mastercard, GHS. **Reminders-only pledges** (no
   auto-charge). Giving is **online-only**.
@@ -208,7 +209,7 @@ Done when:
 - Each hymn renders full metadata: number, title, first line, author, composer, tune, meter,
   musical key, scripture ref, language, category/theme.
 - **Ordinary↔chorister** toggles instantly & offline over already-loaded data (chorister adds
-  the cached **sheet-music PDF**, rendered offline via `pdfx`, + notation metadata +
+  the bundled **sheet-music images** (ADR 0011), + notation metadata +
   annotations); persisted global default + per-hymn override.
 - **FTS5 search** by number/title/first-line/author, offline, snappy on a low-end Android phone.
 - **Readings** (responsive readings, calls to worship, benedictions, creeds, the church covenant;
@@ -220,7 +221,7 @@ Done when:
   a **tombstone sweep**, updates the cursor from server timestamps only; paused/offline/5xx
   no-ops and retries with a subtle "last synced" indicator.
 - **React admin** (on Cloudflare Pages): a non-technical staffer can create/edit a hymn (both
-  views), upload a sheet-music **PDF**, preview both views, publish; changes reach devices on
+  views), upload sheet-music **images**, preview both views, publish; changes reach devices on
   next sync; soft-delete propagates and purges on-device via tombstones.
 - **RLS verified by pgTAP**: anon/members read only published non-deleted content; only
   `hymns.manage` can write; canonical access-token hook + `authorize()` in place.
@@ -255,7 +256,7 @@ Done when:
    `sync_cursors` + `kv_settings` + `tombstones`; `Result`/`AppFailure`; l10n);
    `features/hymnal/` in the domain/data/presentation triad. Pin the package set (riverpod,
    freezed, go_router, supabase_flutter, drift + sqlite3_flutter_libs, cached_network_image,
-   **pdfx** for offline sheet-music PDFs, wakelock_plus, connectivity_plus); set up
+   no PDF renderer (sheet music is bundled images, ADR 0011), wakelock_plus, connectivity_plus); set up
    `dart run build_runner`.
    *Delivered as piece 1, the reading experience ([ADR 0009](decisions/0009-reading-experience.md)):
    the app reads a bundled database built by `packages/content_db`; `sqlite3` now bundles
@@ -360,7 +361,7 @@ into two buckets, and everything is written down.
 ## Decisions status
 
 **Locked (this round):** both iOS + Android · English UI with Ghanaian hymn-content uploads ·
-sheet music = public PDF, visible to everyone, offline-rendered · church is an editable model ·
+sheet music = public images bundled in the app (ADR 0011), visible to everyone, offline · church is an editable model ·
 single-church (no multi-tenant plumbing in v1) · config via JSON (app) + `.env` (admin/backend).
 
 **Still open — but none block starting v1 (needed later, mostly by the giving slice):**
