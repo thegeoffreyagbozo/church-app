@@ -52,11 +52,14 @@ class ContentCatalog {
   Future<Section?> section(String id) async =>
       (await sections()).where((s) => s.id == id).firstOrNull;
 
-  /// The hymns of a section: by number, or in book order when unnumbered.
+  /// The hymns of a section: by number, or in book order when unnumbered. A hymn's
+  /// category is its contents [HymnListItem.group] when it belongs to this section,
+  /// else its [HymnListItem.topic].
   Future<List<HymnListItem>> hymnsIn(String sectionId) async {
     final rows = await _db
         .customSelect(
-          'SELECT h.id, h.number, h.title, h.first_line, c.name AS topic '
+          'SELECT h.id, h.number, h.title, h.first_line, c.id AS category_id, '
+          'c.name AS category, c.part, c.section_id '
           'FROM hymns h LEFT JOIN hymn_categories c ON c.id = h.category_id '
           'WHERE h.hymnal_id = ? '
           'ORDER BY h.number IS NULL, h.number, h.sort_order, h.title',
@@ -66,14 +69,26 @@ class ContentCatalog {
         .get();
     return [
       for (final r in rows)
-        HymnListItem(
-          id: r.read<String>('id'),
-          number: r.read<int?>('number'),
-          title: r.read<String>('title'),
-          firstLine: r.read<String?>('first_line'),
-          topic: r.read<String?>('topic'),
-        ),
+        _listItem(r, grouped: r.read<String?>('section_id') == sectionId),
     ];
+  }
+
+  HymnListItem _listItem(QueryRow r, {required bool grouped}) {
+    final category = r.read<String?>('category');
+    return HymnListItem(
+      id: r.read<String>('id'),
+      number: r.read<int?>('number'),
+      title: r.read<String>('title'),
+      firstLine: r.read<String?>('first_line'),
+      topic: grouped ? null : category,
+      group: grouped && category != null
+          ? HymnGroup(
+              id: r.read<String>('category_id'),
+              name: category,
+              part: r.read<String?>('part'),
+            )
+          : null,
+    );
   }
 
   /// The id of hymn [number] in [sectionId], if the app has it.
@@ -98,12 +113,12 @@ class ContentCatalog {
               ..where((s) => s.hymnId.equals(id))
               ..orderBy([(s) => OrderingTerm(expression: s.position)]))
             .get();
-    final topic = row.categoryId == null
+    final category = row.categoryId == null
         ? null
-        : await (_db.select(_db.hymnCategories)
-                ..where((c) => c.id.equals(row.categoryId!)))
-              .map((c) => c.name)
-              .getSingleOrNull();
+        : await (_db.select(
+            _db.hymnCategories,
+          )..where((c) => c.id.equals(row.categoryId!))).getSingleOrNull();
+    final grouped = category != null && category.sectionId == row.hymnalId;
     final home = await defaultSection();
     return HymnDetail(
       id: row.id,
@@ -115,7 +130,10 @@ class ContentCatalog {
       tuneName: row.tuneName,
       meter: row.meter,
       musicKey: row.musicKey,
-      topic: topic,
+      topic: grouped ? null : category?.name,
+      group: grouped
+          ? HymnGroup(id: category.id, name: category.name, part: category.part)
+          : null,
       isPublicDomain: row.isPublicDomain,
       texts: [
         for (final t in texts)

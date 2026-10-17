@@ -59,6 +59,36 @@ void main() {
     expect(hymns.last.topic, 'Communion');
   });
 
+  test('a grouped section gives each hymn its contents heading', () async {
+    final hymns = await catalog.hymnsIn('section-hymns');
+
+    expect(
+      [for (final h in hymns) (h.number, h.group?.part, h.group?.name)],
+      [
+        (1, 'Hymns of Worship', 'General'),
+        (2, 'Hymns of Worship', 'General'),
+        (7, null, 'The Holy Spirit'),
+        (41, 'The Christian Experience', 'Songs of Assurance and Trust'),
+      ],
+    );
+    expect(hymns.every((h) => h.topic == null), isTrue);
+  });
+
+  test('a topic shared by the whole book is not a contents heading', () async {
+    final hymns = await catalog.hymnsIn('section-service');
+
+    expect(hymns.last.topic, 'Communion');
+    expect(hymns.last.group, isNull);
+  });
+
+  test('a hymn carries its contents heading', () async {
+    final hymn = await catalog.hymn('hymn-41');
+
+    expect(hymn!.group?.name, 'Songs of Assurance and Trust');
+    expect(hymn.group?.partName, 'The Christian Experience');
+    expect(hymn.topic, isNull);
+  });
+
   test('loads a hymn with its verses, chorus and music details', () async {
     final hymn = (await catalog.hymn('supp-1'))!;
 
