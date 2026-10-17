@@ -13,6 +13,11 @@ begin
   assert (select c.name from public.hymns h join public.hymn_categories c on c.id = h.category_id
           where h.title = 'Let Us Break Bread Together') = 'Communion',
     'a TOPIC becomes the hymn''s category';
+  assert (select c.theme || ' / ' || c.name from public.hymns h
+          join public.hymn_categories c on c.id = h.category_id
+          join public.hymnals y on y.id = c.hymnal_id
+          where h.title = 'Rock of Ages' and y.name = 'Hymns') = 'Hymns of Worship / General',
+    'a GROUP becomes a category of its section';
   assert not (select published from public.hymns where title = 'A Protected Hymn'),
     'a protected hymn stays unpublished';
   assert not (select published from public.readings where title = 'Unfinished Reading'),

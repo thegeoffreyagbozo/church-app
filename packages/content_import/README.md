@@ -32,6 +32,7 @@ supabase db query --linked -f ~/Documents/<church>/import.sql
 |---|---|
 | `SECTION <name>` | Starts a numbering series (Hymns, Supplementary Hymns, Service Music). |
 | `TOPIC <name>` | Topic of the hymns that follow, until the next `TOPIC` or `SECTION`. |
+| `GROUP <part> / <subheading>` | The book's contents heading of the hymns that follow, in the current section, until the next `GROUP`, `TOPIC` or `SECTION`. A part without subheadings is just `GROUP <part>`. The app shows these as headings in the section list. |
 | `HYMN <number>` | A hymn; leave the number off for unnumbered pieces. |
 | `READING <number>` | A responsive reading. |
 | `CREED`, `COVENANT` | Unnumbered readings. |
