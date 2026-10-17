@@ -102,6 +102,60 @@ c
       expect(book.hasErrors, isFalse);
       expect(messages(book), ['t.txt:1: warning: hymn 7 "T" skips verse 2']);
     });
+
+    test('GROUP heads the hymns after it until the next SECTION', () {
+      final book = parse('''
+SECTION Hymns
+GROUP Jesus Our Savior / His Birth
+HYMN 85
+Title: Joy to the World
+
+1
+Joy to the world! the Lord is come;
+
+SECTION Supplementary Hymns
+HYMN 001
+Title: Blessed Assurance
+
+1
+Blessed assurance, Jesus is mine!
+''');
+      expect(messages(book), isEmpty);
+      final birth = book.hymns[0].group!;
+      expect((birth.part, birth.name), ('Jesus Our Savior', 'His Birth'));
+      expect(book.hymns[1].group, isNull);
+    });
+
+    test('a GROUP without a subheading names its part; TOPIC replaces it', () {
+      final book = parse('''
+SECTION Hymns
+GROUP The Holy Spirit
+HYMN 158
+Title: Holy Ghost, with Light Divine
+
+1
+Holy Ghost, with light divine,
+
+TOPIC Communion
+HYMN 191
+Title: Bread of the World
+
+1
+Bread of the world in mercy broken,
+''');
+      expect(messages(book), isEmpty);
+      final spirit = book.hymns[0].group!;
+      expect((spirit.part, spirit.name), (null, 'The Holy Spirit'));
+      expect(book.hymns[1].group, isNull);
+      expect(book.hymns[1].topic, 'Communion');
+    });
+
+    test('a GROUP with more than one " / " is an error', () {
+      final book = parse('SECTION Hymns\nGROUP A / B / C\n');
+      expect(messages(book), [
+        't.txt:2: error: GROUP takes "<part> / <subheading>" or just "<part>"',
+      ]);
+    });
   });
 
   group('readings', () {

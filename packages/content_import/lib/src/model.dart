@@ -26,11 +26,28 @@ class HymnSection {
   String lyrics;
 }
 
+/// Where a hymn sits in its section's contents, as the book prints them: a part such as
+/// "Jesus Our Savior" and a subheading such as "His Birth". A part without subheadings
+/// ("The Holy Spirit") has only a [name].
+class Grouping {
+  const Grouping(this.part, this.name);
+  final String? part;
+  final String name;
+}
+
 /// A hymn and its printed details (mirrors `hymns`).
 class Hymn {
-  Hymn(this.section, this.topic, this.number, this.file, this.line);
+  Hymn(
+    this.section,
+    this.topic,
+    this.number,
+    this.file,
+    this.line, {
+    this.group,
+  });
   final String section;
   final String? topic;
+  final Grouping? group;
   final int? number;
   final String file;
   final int line;

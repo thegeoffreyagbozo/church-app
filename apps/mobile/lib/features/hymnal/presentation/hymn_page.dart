@@ -54,7 +54,7 @@ class _Hymn extends ConsumerWidget {
       hymn.title,
     );
     return ItemPage(
-      kicker: hymnKicker(l10n, hymn.section),
+      kicker: hymnKicker(l10n, hymn.section, group: hymn.group),
       number: hymn.number,
       title: hymn.title,
       subtitle: creditsLine(hymn.author, hymn.composer),

@@ -2,6 +2,7 @@ import 'model.dart';
 
 final _section = RegExp(r'^SECTION\s+(.+)$');
 final _topic = RegExp(r'^TOPIC\s+(.+)$');
+final _group = RegExp(r'^GROUP\s+(.+)$');
 final _hymn = RegExp(r'^HYMN(?:\s+(\d+))?$');
 final _reading = RegExp(r'^READING\s+(\d+)$');
 final _label = RegExp(r'^([A-Za-z][A-Za-z ]*?):\s*(.*)$');
@@ -68,6 +69,7 @@ class _Parser {
 
   String? section;
   String? topic;
+  Grouping? group;
   Hymn? hymn;
   Reading? reading;
   bool inLabels = false;
@@ -122,19 +124,42 @@ class _Parser {
       _finish();
       section = sectionMatch[1]!.trim();
       topic = null;
+      group = null;
       return true;
     }
     final topicMatch = _topic.firstMatch(t);
     if (topicMatch != null) {
       _finish();
       topic = topicMatch[1]!.trim();
+      group = null;
+      return true;
+    }
+    final groupMatch = _group.firstMatch(t);
+    if (groupMatch != null) {
+      _finish();
+      final names = groupMatch[1]!.split(' / ').map((s) => s.trim()).toList();
+      if (names.length > 2 || names.any((s) => s.isEmpty)) {
+        _error(n, 'GROUP takes "<part> / <subheading>" or just "<part>"');
+        return true;
+      }
+      group = names.length == 2
+          ? Grouping(names[0], names[1])
+          : Grouping(null, names[0]);
+      topic = null;
       return true;
     }
     final hymnMatch = _hymn.firstMatch(t);
     if (hymnMatch != null) {
       _finish();
       final number = hymnMatch[1] == null ? null : int.parse(hymnMatch[1]!);
-      hymn = Hymn(section ?? defaultSection, topic, number, source.name, n);
+      hymn = Hymn(
+        section ?? defaultSection,
+        topic,
+        number,
+        source.name,
+        n,
+        group: group,
+      );
       inLabels = true;
       return true;
     }
