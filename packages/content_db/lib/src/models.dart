@@ -40,6 +40,23 @@ class Section {
   bool get isNumbered => highestNumber != null;
 }
 
+/// Where a hymn sits in its section's contents, as the book prints them.
+class HymnGroup {
+  const HymnGroup({required this.id, required this.name, this.part});
+
+  final String id;
+
+  /// The subheading, such as "His Birth", or the part itself when it has no
+  /// subheadings, such as "The Holy Spirit".
+  final String name;
+
+  /// The part, such as "Jesus Our Savior"; null when [name] is the part.
+  final String? part;
+
+  /// The part as the contents list it.
+  String get partName => part ?? name;
+}
+
 /// A row of a section list.
 class HymnListItem {
   const HymnListItem({
@@ -48,6 +65,7 @@ class HymnListItem {
     this.number,
     this.firstLine,
     this.topic,
+    this.group,
   });
 
   final String id;
@@ -55,8 +73,11 @@ class HymnListItem {
   final String title;
   final String? firstLine;
 
-  /// The hymn's topic, such as Communion.
+  /// A topic shared by the whole book, such as Communion (not a contents heading).
   final String? topic;
+
+  /// Its heading in the section's contents, when the book gives one.
+  final HymnGroup? group;
 }
 
 /// A verse or chorus as printed.
@@ -99,6 +120,7 @@ class HymnDetail {
     this.meter,
     this.musicKey,
     this.topic,
+    this.group,
   });
 
   final String id;
@@ -114,7 +136,12 @@ class HymnDetail {
   final String? tuneName;
   final String? meter;
   final String? musicKey;
+
+  /// A topic shared by the whole book, such as Communion (not a contents heading).
   final String? topic;
+
+  /// Its heading in the section's contents, when the book gives one.
+  final HymnGroup? group;
 
   /// Whether the words may be shared (copyright expired or waived).
   final bool isPublicDomain;

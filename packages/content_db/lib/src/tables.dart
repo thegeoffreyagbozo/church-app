@@ -15,12 +15,21 @@ class Hymnals extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
-/// A topic such as Communion.
+/// A topic such as Communion, or a heading of a section's contents such as "His Birth"
+/// under the part "Jesus Our Savior".
 @DataClassName('HymnCategoryRow')
 class HymnCategories extends Table {
   TextColumn get id => text()();
   TextColumn get name => text()();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+
+  /// The section whose contents this heading belongs to; null for a topic shared by
+  /// the whole book.
+  TextColumn get sectionId => text().nullable()();
+
+  /// The part a contents heading sits under (`theme` in Supabase); null for a topic
+  /// or a part without subheadings.
+  TextColumn get part => text().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

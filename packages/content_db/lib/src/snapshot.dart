@@ -10,7 +10,7 @@ typedef ApiRow = Map<String, Object?>;
 /// The columns read from each Supabase table, in the API's `select` syntax.
 const snapshotColumns = {
   'hymnals': 'id,name,is_default,sort_order',
-  'hymn_categories': 'id,name,sort_order',
+  'hymn_categories': 'id,hymnal_id,name,theme,sort_order',
   'hymns':
       'id,hymnal_id,category_id,number,title,first_line,author,composer,'
       'tune_name,meter,music_key,scripture_ref,chorister_notes,'
@@ -142,6 +142,8 @@ Future<ImportSummary> importSnapshot(
             id: r['id']! as String,
             name: r['name']! as String,
             sortOrder: Value(_int(r['sort_order']) ?? 0),
+            sectionId: Value(_text(r['hymnal_id'])),
+            part: Value(_text(r['theme'])),
           ),
       ]);
       b.insertAll(db.hymns, [
