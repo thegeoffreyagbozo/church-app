@@ -1,5 +1,6 @@
 import 'ids.dart';
 import 'model.dart';
+import 'music.dart';
 import 'public_domain.dart';
 
 /// One row to insert or update: its table and its column values.
@@ -12,11 +13,24 @@ class Row {
 /// Soft-deletes the rows of [table] under [parentId] at positions >= [keep], so content
 /// removed in a corrected batch disappears instead of lingering.
 class Cleanup {
-  const Cleanup(this.table, this.parentColumn, this.parentId, this.keep);
+  const Cleanup(
+    this.table,
+    this.parentColumn,
+    this.parentId,
+    this.keep, {
+    this.orderColumn = 'position',
+    this.kind,
+  });
   final String table;
   final String parentColumn;
   final String parentId;
   final int keep;
+
+  /// The column that orders the children (`sort_order` for sheet music).
+  final String orderColumn;
+
+  /// Only children of this `kind`, so that other kinds (a hymn's audio, say) stay.
+  final String? kind;
 }
 
 /// Everything one import writes, in dependency order.
@@ -50,13 +64,15 @@ String firstLineOf(String lyrics) {
 ///
 /// Row ids derive from natural keys (section and number, or kind and title), so importing
 /// a corrected batch again updates the same rows. Protected or unconfirmed content is left
-/// unpublished unless [publishAll]; drafts are never published.
+/// unpublished unless [publishAll]; drafts are never published. [music] adds sheet-music
+/// rows; then every hymn also cleans up pieces it no longer has.
 ImportPlan planImport(
   Book book, {
   required int currentYear,
   bool publishAll = false,
   String defaultSection = 'Hymns',
   String language = 'en',
+  List<MusicPiece>? music,
 }) {
   final rows = <Row>[];
   final cleanups = <Cleanup>[];
@@ -176,6 +192,37 @@ ImportPlan planImport(
       );
     }
     cleanups.add(Cleanup('hymn_sections', 'hymn_id', id, h.sections.length));
+    if (music != null) {
+      final hymnKey = '${h.section}/${h.number ?? h.title!.toLowerCase()}';
+      final pieces = [
+        for (final m in music)
+          if (m.hymnKey == hymnKey) m,
+      ]..sort((a, b) => a.part.compareTo(b.part));
+      for (final m in pieces) {
+        rows.add(
+          Row('hymn_assets', {
+            'id': stableId('$key/music/${m.part}'),
+            'hymn_id': id,
+            'kind': 'sheet_music_image',
+            'storage_bucket': 'sheet-music',
+            'storage_path': m.path,
+            'page': m.page,
+            'mime': 'image/png',
+            'sort_order': m.part - 1,
+          }),
+        );
+      }
+      cleanups.add(
+        Cleanup(
+          'hymn_assets',
+          'hymn_id',
+          id,
+          pieces.length,
+          orderColumn: 'sort_order',
+          kind: 'sheet_music_image',
+        ),
+      );
+    }
   }
 
   for (final (i, r) in book.readings.indexed) {

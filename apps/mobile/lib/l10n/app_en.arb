@@ -57,6 +57,12 @@
   "alsoSungTo": "Also sung to",
   "notInAppYet": "not in the app yet",
   "noMusicDetails": "The book prints no music details for this hymn.",
+  "musicImageLabel": "Printed music of {title}",
+  "@musicImageLabel": {"placeholders": {"title": {"type": "String"}}},
+  "musicMissing": "This music could not be shown.",
+  "tapToZoom": "Tap the music to see it full screen and zoom.",
+  "noPrintedMusic": "The choir book has no printed music for this hymn.",
+  "close": "Close",
   "itemMissing": "This is no longer in the hymn book.",
 
   "readTogether": "Everyone reads together",

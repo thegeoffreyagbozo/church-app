@@ -1,9 +1,12 @@
 import 'package:content_db/content_db.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared/shared.dart';
 
 import '../../../core/labels.dart';
+import '../../../core/router/app_router.dart';
+import '../../../core/theme/hymnal_theme.dart';
 import '../../../core/widgets/item_page.dart';
 import '../../../core/widgets/missing_item.dart';
 import '../../../core/widgets/opened_marker.dart';
@@ -15,6 +18,7 @@ import '../data/hymnal_providers.dart';
 import '../domain/hymn_layout.dart';
 import 'hymn_text_block.dart';
 import 'music_card.dart';
+import 'music_pages.dart';
 import 'view_switch.dart';
 
 /// One hymn: every verse on one page, the chorus after each (spec section 3.3).
@@ -46,9 +50,11 @@ class _Hymn extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final theme = HymnalTheme.of(context);
     final music =
         ref.watch(readingSettingsProvider.select((s) => s.hymnView)) ==
         HymnViewMode.chorister;
+    final showMusic = music && hymn.music.isNotEmpty;
     final label = itemLabel(
       hymnName(l10n, hymn.section, hymn.number),
       hymn.title,
@@ -58,6 +64,7 @@ class _Hymn extends ConsumerWidget {
       number: hymn.number,
       title: hymn.title,
       subtitle: creditsLine(hymn.author, hymn.composer),
+      resizable: !showMusic,
       actions: [
         const ViewSwitch(),
         const SizedBox(width: 6),
@@ -73,8 +80,16 @@ class _Hymn extends ConsumerWidget {
       ],
       children: [
         if (music) MusicCard(hymn),
-        for (final text in withChorusAfterEachVerse(hymn.texts))
-          HymnTextBlock(text),
+        if (showMusic) ...[
+          MusicPages(hymn, onTap: () => context.push(hymnMusicPath(hymn.id))),
+          Text(
+            l10n.tapToZoom,
+            textAlign: TextAlign.center,
+            style: theme.text.caption,
+          ),
+        ] else
+          for (final text in withChorusAfterEachVerse(hymn.texts))
+            HymnTextBlock(text),
       ],
     );
   }

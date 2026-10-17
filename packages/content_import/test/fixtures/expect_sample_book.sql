@@ -18,6 +18,9 @@ begin
           join public.hymnals y on y.id = c.hymnal_id
           where h.title = 'Rock of Ages' and y.name = 'Hymns') = 'Hymns of Worship / General',
     'a GROUP becomes a category of its section';
+  assert (select count(*) from public.hymn_assets a join public.hymns h on h.id = a.hymn_id
+          where h.title = 'Rock of Ages' and a.deleted_at is null) = 1,
+    'a music map row becomes a sheet-music row of its hymn';
   assert not (select published from public.hymns where title = 'A Protected Hymn'),
     'a protected hymn stays unpublished';
   assert not (select published from public.readings where title = 'Unfinished Reading'),
@@ -43,5 +46,10 @@ begin
     'anonymous users see a published hymn';
   assert (select count(*) from public.readings where title = 'Unfinished Reading') = 0,
     'anonymous users must not see a draft reading';
+  -- By path, not through hymns: that join alone would hide the unpublished hymn's row.
+  assert (select count(*) from public.hymn_assets where storage_path = 'hymns/002-1.png') = 0,
+    'anonymous users must not see music of an unpublished hymn';
+  assert (select count(*) from public.hymn_assets where storage_path = 'hymns/001-1.png') = 1,
+    'anonymous users see music of a published hymn';
 end $$;
 reset role;

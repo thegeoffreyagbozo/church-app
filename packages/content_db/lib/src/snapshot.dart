@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import 'database.dart';
+import 'png.dart';
 
 /// One row as the Supabase API returns it: column name to JSON value.
 typedef ApiRow = Map<String, Object?>;
@@ -16,6 +17,7 @@ const snapshotColumns = {
       'tune_name,meter,music_key,scripture_ref,chorister_notes,'
       'is_public_domain,sort_order',
   'hymn_sections': 'id,hymn_id,section_type,section_number,position,lyrics',
+  'hymn_assets': 'id,hymn_id,kind,storage_bucket,storage_path,sort_order',
   'readings': 'id,kind,number,title,scripture_ref,is_public_domain,sort_order',
   'reading_parts': 'id,reading_id,position,number,speaker,body,scripture_ref',
   'church': 'id,name,email,phone,website,socials,tagline',
@@ -31,6 +33,7 @@ class ContentSnapshot {
     required this.readings,
     required this.parts,
     required this.church,
+    this.music = const [],
   });
 
   /// Reads the JSON written by [toJson] (or a hand-made fixture of the same shape).
@@ -47,6 +50,7 @@ class ContentSnapshot {
       readings: rows('readings'),
       parts: rows('reading_parts'),
       church: rows('church'),
+      music: rows('hymn_assets'),
     );
   }
 
@@ -61,6 +65,9 @@ class ContentSnapshot {
   final List<ApiRow> parts;
   final List<ApiRow> church;
 
+  /// Sheet music and other files of the hymns (`hymn_assets`).
+  final List<ApiRow> music;
+
   Map<String, Object?> toJson() => {
     'hymnals': hymnals,
     'hymn_categories': categories,
@@ -69,6 +76,7 @@ class ContentSnapshot {
     'readings': readings,
     'reading_parts': parts,
     'church': church,
+    'hymn_assets': music,
   };
 }
 
@@ -81,6 +89,7 @@ class ImportSummary {
     required this.verses,
     required this.readings,
     required this.parts,
+    required this.music,
     required this.skipped,
   });
 
@@ -89,6 +98,9 @@ class ImportSummary {
   final int verses;
   final int readings;
   final int parts;
+
+  /// Pieces of sheet music bundled with the book.
+  final int music;
   final int skipped;
 }
 
@@ -98,9 +110,11 @@ class ImportSummary {
 /// rules), so rows whose parent is missing are left out instead of breaking the book.
 Future<ImportSummary> importSnapshot(
   ContentDatabase db,
-  ContentSnapshot snapshot,
-) {
+  ContentSnapshot snapshot, {
+  Map<String, ImageSize> musicSizes = const {},
+}) {
   return db.transaction(() async {
+    await db.delete(db.hymnMusic).go();
     await db.delete(db.hymnSections).go();
     await db.delete(db.hymns).go();
     await db.delete(db.hymnCategories).go();
@@ -181,6 +195,17 @@ Future<ImportSummary> importSnapshot(
             lyrics: r['lyrics'] as String? ?? '',
           ),
       ]);
+      b.insertAll(db.hymnMusic, [
+        for (final r in bundledMusic(snapshot))
+          if (musicSizes[r['id']] case final size?)
+            HymnMusicCompanion.insert(
+              id: r['id']! as String,
+              hymnId: r['hymn_id']! as String,
+              position: _int(r['sort_order']) ?? 0,
+              width: size.width,
+              height: size.height,
+            ),
+      ]);
       b.insertAll(db.readings, [
         for (final r in snapshot.readings)
           ReadingsCompanion.insert(
@@ -229,6 +254,9 @@ Future<ImportSummary> importSnapshot(
       verses: sections.length,
       readings: snapshot.readings.length,
       parts: parts.length,
+      music: bundledMusic(
+        snapshot,
+      ).where((r) => musicSizes.containsKey(r['id'])).length,
       skipped:
           snapshot.hymns.length -
           hymns.length +
@@ -241,6 +269,20 @@ Future<ImportSummary> importSnapshot(
 }
 
 Set<Object?> _ids(List<ApiRow> rows) => {for (final r in rows) r['id']};
+
+/// The sheet-music pieces to bundle: images whose hymn is in the book (its row came
+/// back and its section is published).
+List<ApiRow> bundledMusic(ContentSnapshot snapshot) {
+  final hymnalIds = _ids(snapshot.hymnals);
+  final hymnIds = {
+    for (final r in snapshot.hymns)
+      if (hymnalIds.contains(r['hymnal_id'])) r['id'],
+  };
+  return [
+    for (final r in snapshot.music)
+      if (r['kind'] == 'sheet_music_image' && hymnIds.contains(r['hymn_id'])) r,
+  ];
+}
 
 int? _int(Object? value) => (value as num?)?.toInt();
 

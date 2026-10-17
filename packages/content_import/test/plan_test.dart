@@ -25,6 +25,8 @@ const hisBirthId = 'd980a9eb-54f8-5732-8cb6-392b638a50c6';
 const holySpiritId = 'b8cef61e-3b5d-5672-a058-bdff462c17e6';
 const hymn85Id = 'afac7e8f-966a-5c92-9f75-a94d3319e4e1';
 const hymn158Id = '2f1bed23-eef3-5b4b-93d9-4d069ac72ae6';
+const hymn267Music1Id = '6c420fa3-9739-5523-8a77-6e771c0cd03e';
+const hymn267Music2Id = '54aa6c6f-a3f1-56a9-95f2-79e347184cbd';
 
 const hymn267 = '''
 SECTION Hymns
@@ -228,6 +230,36 @@ Ref: I Timothy 1:17
       expect(row(p, 'readings', covenantId)['number'], isNull);
     });
   });
+
+  test(
+    'music pieces become sheet-music rows of their hymn, cleaned up per hymn',
+    () {
+      final p = planImport(
+        parseSources([const Source('t.txt', hymn267)]),
+        currentYear: 2026,
+        music: const [
+          MusicPiece('Hymns', '267', 1, 'hymns/267-1.png', 271, 1),
+          MusicPiece('Hymns', '267', 2, 'hymns/267-2.png', 272, 2),
+        ],
+      );
+      final first = row(p, 'hymn_assets', hymn267Music1Id);
+      expect(first['hymn_id'], hymn267Id);
+      expect(first['kind'], 'sheet_music_image');
+      expect(first['storage_bucket'], 'sheet-music');
+      expect(first['storage_path'], 'hymns/267-1.png');
+      expect(first['page'], 271);
+      expect(first['mime'], 'image/png');
+      expect(first['sort_order'], 0);
+      expect(row(p, 'hymn_assets', hymn267Music2Id)['sort_order'], 1);
+      final cleanup = p.cleanups.singleWhere((c) => c.table == 'hymn_assets');
+      expect(
+        (cleanup.parentId, cleanup.keep, cleanup.orderColumn),
+        (hymn267Id, 2, 'sort_order'),
+      );
+      // Only sheet music: other files of the hymn, such as audio, stay.
+      expect(cleanup.kind, 'sheet_music_image');
+    },
+  );
 
   test('each hymn and reading soft-deletes the children it no longer has', () {
     final p = plan(

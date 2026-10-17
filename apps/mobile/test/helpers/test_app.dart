@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:church_app/app.dart';
 import 'package:church_app/core/database/content_providers.dart';
 import 'package:church_app/core/platform/platform_services.dart';
 import 'package:church_app/core/router/app_router.dart';
+import 'package:church_app/features/hymnal/data/hymnal_providers.dart';
 import 'package:church_app/features/settings/domain/reading_settings.dart';
 import 'package:church_app/features/settings/presentation/settings_controller.dart';
 import 'package:content_db/content_db.dart';
@@ -12,6 +14,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 
 /// An in-memory hymn book holding content_db's public-domain sample.
 Future<ContentDatabase> sampleDatabase() async {
@@ -19,10 +22,35 @@ Future<ContentDatabase> sampleDatabase() async {
   final json = File(
     '../../packages/content_db/test/fixtures/sample_content.json',
   ).readAsStringSync();
-  await importSnapshot(db, ContentSnapshot.parse(json));
+  await importSnapshot(
+    db,
+    ContentSnapshot.parse(json),
+    musicSizes: const {
+      'music-41-1': ImageSize(1200, 900),
+      'music-41-2': ImageSize(1200, 500),
+      'music-doxology-1': ImageSize(1200, 700),
+    },
+  );
   await rebuildSearchIndex(db);
   return db;
 }
+
+/// A small black-on-white PNG standing in for a piece of printed music.
+final Uint8List testMusicPng = () {
+  final image = img.Image(width: 120, height: 90)
+    ..clear(img.ColorRgb8(255, 255, 255));
+  for (var y = 20; y < 70; y += 10) {
+    img.drawLine(
+      image,
+      x1: 5,
+      y1: y,
+      x2: 115,
+      y2: y,
+      color: img.ColorRgb8(0, 0, 0),
+    );
+  }
+  return img.encodePng(image);
+}();
 
 class FakeScreenAwake extends ScreenAwake {
   bool awake = false;
@@ -75,6 +103,7 @@ Future<TestPlatform> pumpApp(
   ReadingSettings settings = const ReadingSettings(theme: ReadingTheme.paper),
   TestPlatform? platform,
   List<Override> overrides = const [],
+  ImageProvider Function(String id)? musicImage,
 }) async {
   final fakes = platform ?? TestPlatform();
   await tester.pumpWidget(
@@ -89,6 +118,9 @@ Future<TestPlatform> pumpApp(
         screenAwakeProvider.overrideWithValue(fakes.screen),
         sharingProvider.overrideWithValue(fakes.sharing),
         launcherProvider.overrideWithValue(fakes.launcher),
+        musicImageProvider.overrideWithValue(
+          musicImage ?? (_) => MemoryImage(testMusicPng),
+        ),
         ...overrides,
       ],
       child: const HymnalApp(),

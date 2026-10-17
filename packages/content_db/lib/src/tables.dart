@@ -73,6 +73,20 @@ class HymnSections extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+/// One piece of a hymn's printed music, bundled as `music/<id>.png` beside the
+/// database, with its size so the app lays it out before the image loads.
+@DataClassName('HymnMusicRow')
+class HymnMusic extends Table {
+  TextColumn get id => text()();
+  TextColumn get hymnId => text().references(Hymns, #id)();
+  IntColumn get position => integer()();
+  IntColumn get width => integer()();
+  IntColumn get height => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 /// A responsive reading, collection, creed or covenant (ADR 0008).
 @DataClassName('ReadingRow')
 class Readings extends Table {
