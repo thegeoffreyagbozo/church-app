@@ -86,8 +86,33 @@ ImportPlan planImport(
       Row('hymn_categories', {
         'id': categoryId(topic),
         'hymnal_id': null,
-        'key': topic.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-'),
+        'key': _key(topic),
         'name': topic,
+      }),
+    );
+  }
+
+  String groupId(String section, Grouping g) => stableId(
+        'category/$language/${section.toLowerCase()}/'
+        '${(g.part ?? '').toLowerCase()}/${g.name.toLowerCase()}',
+      );
+  final groups = <String, (String, Grouping)>{};
+  for (final h in book.hymns) {
+    final g = h.group;
+    if (g != null) {
+      groups.putIfAbsent(groupId(h.section, g), () => (h.section, g));
+    }
+  }
+  for (final (i, MapEntry(key: id, value: (section, g)))
+      in groups.entries.indexed) {
+    rows.add(
+      Row('hymn_categories', {
+        'id': id,
+        'hymnal_id': hymnalId(section),
+        'key': _key(g.part == null ? g.name : '${g.part} ${g.name}'),
+        'name': g.name,
+        'theme': g.part,
+        'sort_order': i,
       }),
     );
   }
@@ -109,7 +134,11 @@ ImportPlan planImport(
       Row('hymns', {
         'id': id,
         'hymnal_id': hymnalId(h.section),
-        'category_id': h.topic == null ? null : categoryId(h.topic!),
+        'category_id': h.group != null
+            ? groupId(h.section, h.group!)
+            : h.topic == null
+                ? null
+                : categoryId(h.topic!),
         'number': h.number,
         'title': h.title,
         'first_line': firstLineOf(
@@ -188,6 +217,10 @@ ImportPlan planImport(
 
   return ImportPlan(rows, cleanups);
 }
+
+/// A category key such as "jesus-our-savior-his-birth".
+String _key(String text) =>
+    text.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-');
 
 /// "Words; translated by X" or "Music; arranged by Y", whichever parts are printed.
 String? _credit(String? main, String? extra, String how) {

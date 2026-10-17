@@ -21,6 +21,10 @@ const communionId = '9135a439-31ab-5dfa-9fa0-2dc8cf675fac';
 const benedictionsId = '1418878a-1bef-52b8-aab8-71e5a51c4e8c';
 const benedictionsPart2Id = 'aaa3f5d2-739c-5535-8549-e36e944bad93';
 const covenantId = '70163509-9b99-5c9e-9c0d-d9655917c6bd';
+const hisBirthId = 'd980a9eb-54f8-5732-8cb6-392b638a50c6';
+const holySpiritId = 'b8cef61e-3b5d-5672-a058-bdff462c17e6';
+const hymn85Id = 'afac7e8f-966a-5c92-9f75-a94d3319e4e1';
+const hymn158Id = '2f1bed23-eef3-5b4b-93d9-4d069ac72ae6';
 
 const hymn267 = '''
 SECTION Hymns
@@ -152,6 +156,38 @@ Let us break bread together on our knees.
       expect(c['name'], 'Communion');
       expect(c['hymnal_id'], isNull);
       expect(p.rowsOf('hymns').single.values['category_id'], communionId);
+    });
+
+    test('a group becomes a category of its section, in book order', () {
+      final p = plan('''
+SECTION Hymns
+GROUP Jesus Our Savior / His Birth
+HYMN 85
+Title: Joy to the World
+Words: Isaac Watts, 1674-1748
+
+1
+Joy to the world! the Lord is come;
+
+GROUP The Holy Spirit
+HYMN 158
+Title: Holy Ghost, with Light Divine
+Words: Andrew Reed, 1787-1862
+
+1
+Holy Ghost, with light divine,
+''');
+      final birth = row(p, 'hymn_categories', hisBirthId);
+      expect(birth['hymnal_id'], hymnsId);
+      expect(birth['theme'], 'Jesus Our Savior');
+      expect(birth['name'], 'His Birth');
+      expect(birth['key'], 'jesus-our-savior-his-birth');
+      expect(birth['sort_order'], 0);
+      final spirit = row(p, 'hymn_categories', holySpiritId);
+      expect(spirit['theme'], isNull);
+      expect(spirit['sort_order'], 1);
+      expect(row(p, 'hymns', hymn85Id)['category_id'], hisBirthId);
+      expect(row(p, 'hymns', hymn158Id)['category_id'], holySpiritId);
     });
   });
 
