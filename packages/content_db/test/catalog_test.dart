@@ -81,6 +81,16 @@ void main() {
     expect(hymns.last.group, isNull);
   });
 
+  test('a hymn lists its music pieces in order, with their sizes', () async {
+    final hymn = await catalog.hymn('hymn-41');
+
+    expect(
+      [for (final m in hymn!.music) (m.id, m.width, m.height)],
+      [('music-41-1', 1200, 900), ('music-41-2', 1200, 500)],
+    );
+    expect((await catalog.hymn('hymn-7'))!.music, isEmpty);
+  });
+
   test('a hymn carries its contents heading', () async {
     final hymn = await catalog.hymn('hymn-41');
 

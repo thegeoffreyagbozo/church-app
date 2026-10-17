@@ -105,6 +105,21 @@ class AlsoSungTo {
   final String? hymnId;
 }
 
+/// One piece of a hymn's printed music, bundled as `music/<id>.png`.
+class HymnMusicPart {
+  const HymnMusicPart({
+    required this.id,
+    required this.width,
+    required this.height,
+  });
+
+  final String id;
+  final int width;
+  final int height;
+
+  double get aspectRatio => width / height;
+}
+
 class HymnDetail {
   const HymnDetail({
     required this.id,
@@ -121,6 +136,7 @@ class HymnDetail {
     this.musicKey,
     this.topic,
     this.group,
+    this.music = const [],
   });
 
   final String id;
@@ -142,6 +158,9 @@ class HymnDetail {
 
   /// Its heading in the section's contents, when the book gives one.
   final HymnGroup? group;
+
+  /// Its printed music, piece by piece; empty when the app has none.
+  final List<HymnMusicPart> music;
 
   /// Whether the words may be shared (copyright expired or waived).
   final bool isPublicDomain;
