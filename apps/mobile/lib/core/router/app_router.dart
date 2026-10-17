@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/hymnal/presentation/hymn_page.dart';
+import '../../features/hymnal/presentation/music_viewer_screen.dart';
 import '../../features/hymnal/presentation/section_list_screen.dart';
 import '../../features/readings/presentation/reading_page.dart';
 import '../../features/readings/presentation/readings_screen.dart';
@@ -12,6 +13,7 @@ import '../widgets/home_shell.dart';
 
 String sectionPath(String id) => '/section/$id';
 String hymnPath(String id) => '/hymn/$id';
+String hymnMusicPath(String id) => '/hymn/$id/music';
 String readingPath(String id) => '/reading/$id';
 
 /// Where the app starts; tests override it to open a page directly.
@@ -66,6 +68,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/hymn/:id',
         parentNavigatorKey: root,
         builder: (_, state) => HymnPage(id: state.pathParameters['id']!),
+        routes: [
+          GoRoute(
+            path: 'music',
+            parentNavigatorKey: root,
+            builder: (_, state) =>
+                MusicViewerScreen(id: state.pathParameters['id']!),
+          ),
+        ],
       ),
       GoRoute(
         path: '/reading/:id',
