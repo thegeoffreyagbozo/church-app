@@ -103,6 +103,7 @@ Future<TestPlatform> pumpApp(
   ReadingSettings settings = const ReadingSettings(theme: ReadingTheme.paper),
   TestPlatform? platform,
   List<Override> overrides = const [],
+  ImageProvider Function(String id)? musicImage,
 }) async {
   final fakes = platform ?? TestPlatform();
   await tester.pumpWidget(
@@ -117,7 +118,9 @@ Future<TestPlatform> pumpApp(
         screenAwakeProvider.overrideWithValue(fakes.screen),
         sharingProvider.overrideWithValue(fakes.sharing),
         launcherProvider.overrideWithValue(fakes.launcher),
-        musicImageProvider.overrideWithValue((_) => MemoryImage(testMusicPng)),
+        musicImageProvider.overrideWithValue(
+          musicImage ?? (_) => MemoryImage(testMusicPng),
+        ),
         ...overrides,
       ],
       child: const HymnalApp(),
