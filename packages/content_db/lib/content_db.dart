@@ -6,6 +6,8 @@ export 'src/catalog.dart';
 export 'src/database.dart';
 export 'src/installer.dart';
 export 'src/models.dart';
+export 'src/music_files.dart';
+export 'src/png.dart';
 export 'src/search/query.dart';
 export 'src/search/results.dart';
 export 'src/search/scripture.dart';

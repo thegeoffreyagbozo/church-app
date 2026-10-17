@@ -119,6 +119,11 @@ class ContentCatalog {
             _db.hymnCategories,
           )..where((c) => c.id.equals(row.categoryId!))).getSingleOrNull();
     final grouped = category != null && category.sectionId == row.hymnalId;
+    final music =
+        await (_db.select(_db.hymnMusic)
+              ..where((m) => m.hymnId.equals(id))
+              ..orderBy([(m) => OrderingTerm(expression: m.position)]))
+            .get();
     final home = await defaultSection();
     return HymnDetail(
       id: row.id,
@@ -134,6 +139,10 @@ class ContentCatalog {
       group: grouped
           ? HymnGroup(id: category.id, name: category.name, part: category.part)
           : null,
+      music: [
+        for (final m in music)
+          HymnMusicPart(id: m.id, width: m.width, height: m.height),
+      ],
       isPublicDomain: row.isPublicDomain,
       texts: [
         for (final t in texts)

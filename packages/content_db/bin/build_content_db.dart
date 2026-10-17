@@ -21,6 +21,12 @@ Future<void> main(List<String> arguments) async {
     )
     ..addOption('save-json', help: 'Also save the downloaded snapshot here.')
     ..addOption(
+      'music-from',
+      help:
+          'Folder laid out like the sheet-music bucket, for --from-json '
+          'builds.',
+    )
+    ..addOption(
       'out',
       help:
           'Database file to write, such as '
@@ -42,12 +48,23 @@ Future<void> main(List<String> arguments) async {
 
   final ContentSnapshot snapshot;
   final String source;
+  MusicFiles? musicFiles;
+  SupabaseMusicFiles? bucket;
   final fromJson = args.option('from-json');
   if (fromJson != null) {
     final file = File(fromJson);
     if (!file.existsSync()) _fail(66, 'No such file: $fromJson');
     snapshot = ContentSnapshot.parse(file.readAsStringSync());
     source = 'file:${file.uri.pathSegments.last}';
+    final musicFrom = args.option('music-from');
+    if (musicFrom != null) {
+      musicFiles = DirectoryMusicFiles(musicFrom);
+    } else if (bundledMusic(snapshot).isNotEmpty) {
+      stdout.writeln(
+        'No --music-from: the music of ${bundledMusic(snapshot).length} '
+        'pieces is left out.',
+      );
+    }
   } else {
     var url = args.option('url');
     var key = args.option('key');
@@ -73,6 +90,7 @@ Future<void> main(List<String> arguments) async {
       supabase.close();
     }
     source = Uri.parse(url).host;
+    musicFiles = bucket = SupabaseMusicFiles(url: url);
     final save = args.option('save-json');
     if (save != null) {
       File(save).writeAsStringSync(
@@ -81,16 +99,33 @@ Future<void> main(List<String> arguments) async {
     }
   }
 
-  final summary = await buildContentDatabase(
-    snapshot,
-    outPath: out,
-    builtAt: DateTime.now().toUtc(),
-    source: source,
-  );
+  final ImportSummary summary;
+  try {
+    summary = await buildContentDatabase(
+      snapshot,
+      outPath: out,
+      builtAt: DateTime.now().toUtc(),
+      source: source,
+      musicFiles: musicFiles,
+    );
+  } on MusicFileException catch (e) {
+    _fail(69, '$e');
+  } on SocketException catch (e) {
+    _fail(69, 'Could not download sheet music: ${e.message}');
+  } finally {
+    bucket?.close();
+  }
   stdout.writeln(
     'Wrote $out: ${summary.sections} sections, ${summary.hymns} hymns '
     '(${summary.verses} verses and choruses), ${summary.readings} readings '
     '(${summary.parts} parts).',
+  );
+  final bytes = Directory(
+    musicDirFor(out),
+  ).listSync().whereType<File>().fold<int>(0, (sum, f) => sum + f.lengthSync());
+  stdout.writeln(
+    'Music: ${summary.music} pieces, '
+    '${(bytes / 1e6).toStringAsFixed(1)} MB.',
   );
   if (summary.skipped > 0) {
     stdout.writeln(

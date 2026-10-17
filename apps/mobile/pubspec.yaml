@@ -48,6 +48,8 @@ flutter:
   assets:
     # Built by `dart run content_db:build_content_db` and git-ignored (church content).
     - assets/content/
+    # Sheet music beside content.db, written by the same build (ADR 0011).
+    - assets/content/music/
     - assets/fonts/licenses/
 
   fonts:
