@@ -33,5 +33,6 @@ are. Code can be read anywhere; the reasoning lives here.
 | [0008](./decisions/0008-readings.md) | Readings: one model for responsive readings, creeds, covenants and benedictions | Accepted |
 | [0009](./decisions/0009-reading-experience.md) | The reading experience: Hymnal style, one search bar, a bundled hymn book database | Accepted |
 | [0010](./decisions/0010-platform-tab-bars.md) | Each platform's own tab bar; Liquid Glass on iOS 26 waits for the iOS build | Accepted |
+| [0011](./decisions/0011-sheet-music-images.md) | Sheet music as page images cut from the choir book, bundled in the app | Accepted |
 
 To add a decision: copy the format of any ADR, give it the next number, and add a row above.
