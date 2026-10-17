@@ -92,7 +92,8 @@ jobs:
         run: |
           flutter pub get
           (cd packages/content_import && dart run content_import \
-            test/fixtures/sample_book.txt --out /tmp/sample_book.sql --year 2026)
+            test/fixtures/sample_book.txt --music test/fixtures/sample_music.tsv \
+            --out /tmp/sample_book.sql --year 2026)
           db=postgresql://postgres:postgres@127.0.0.1:54322/postgres
           # The second import must update the same rows, not duplicate them.
           psql "$db" -v ON_ERROR_STOP=1 -q -f /tmp/sample_book.sql
