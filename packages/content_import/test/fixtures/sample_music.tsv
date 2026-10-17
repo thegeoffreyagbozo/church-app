@@ -1,0 +1,4 @@
+# A music map for sample_book.txt. CI imports it with the book; no image files are needed.
+Hymns	1	1	hymns/001-1.png	1
+Hymns	2	1	hymns/002-1.png	2
+Service Music	Doxology	1	service-music/doxology-1.png	1

@@ -36,6 +36,11 @@ void main(List<String> args) {
       'year',
       help: 'Year to judge copyright by (default: this year).',
     )
+    ..addOption(
+      'music',
+      help: 'Music map (section, number or title, part, path, page) to load '
+          'as sheet music.',
+    )
     ..addFlag('help', abbr: 'h', negatable: false, help: 'Show this help.');
 
   final ArgResults options;
@@ -79,6 +84,31 @@ void main(List<String> args) {
     return;
   }
 
+  List<MusicPiece>? music;
+  final musicPath = options.option('music');
+  if (musicPath != null) {
+    final file = File(musicPath);
+    if (!file.existsSync()) {
+      stderr.writeln('$musicPath: no such file');
+      exitCode = 66;
+      return;
+    }
+    final issues = <Issue>[];
+    music = parseMusicMap(Source(musicPath, file.readAsStringSync()), issues);
+    issues.addAll(checkMusicMap(book, music, file: musicPath));
+    for (final issue in issues) {
+      stderr.writeln(issue);
+    }
+    if (issues.isNotEmpty) {
+      stderr.writeln(
+        '${issues.length} music map error${issues.length == 1 ? '' : 's'}: '
+        'nothing written.',
+      );
+      exitCode = 1;
+      return;
+    }
+  }
+
   final year = options.option('year');
   final plan = planImport(
     book,
@@ -86,6 +116,7 @@ void main(List<String> args) {
     publishAll: options.flag('publish-all'),
     defaultSection: defaultSection,
     language: options.option('language')!,
+    music: music,
   );
   final out = options.option('out');
   final sql = renderSql(plan);
@@ -105,6 +136,8 @@ void _summarize(Book book, ImportPlan plan, String? out) {
   ];
   stderr.writeln('${book.hymns.length} hymns (${perSection.join(', ')}), '
       '${book.readings.length} readings.');
+  final pieces = plan.rowsOf('hymn_assets').length;
+  if (pieces > 0) stderr.writeln('$pieces pieces of sheet music.');
 
   final unpublished = <String>[];
   final drafts = <String>[];

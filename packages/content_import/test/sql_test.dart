@@ -65,6 +65,26 @@ void main() {
     );
   });
 
+  test('a cleanup can order children by another column', () {
+    final sql = renderSql(
+      ImportPlan(const [], [
+        const Cleanup(
+          'hymn_assets',
+          'hymn_id',
+          'h1',
+          2,
+          orderColumn: 'sort_order',
+        ),
+      ]),
+    );
+    expect(
+      sql,
+      contains(
+        "where hymn_id = 'h1' and sort_order >= 2 and deleted_at is null;",
+      ),
+    );
+  });
+
   test('everything runs in one transaction', () {
     final sql = renderSql(
       ImportPlan(

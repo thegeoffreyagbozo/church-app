@@ -24,6 +24,15 @@ supabase db query --linked -f ~/Documents/<church>/import.sql
   published.
 - Real church content and the generated SQL stay outside this public repo (ADR 0007).
 
+## Sheet music
+
+`--music <music.tsv>` also loads cut-out printed music as `hymn_assets` rows, one per piece:
+`section<TAB>number or title<TAB>part<TAB>path<TAB>page`, where the path is the image's place in
+the `sheet-music` bucket (e.g. `hymns/002-1.png`) and parts count from 1. A piece for a hymn the
+batch files don't have, or a missing part, stops the import. Each hymn soft-deletes pieces it no
+longer has. The images themselves are uploaded to the bucket separately (`supabase storage cp`);
+`test/fixtures/sample_music.tsv` is an example.
+
 ## Format
 
 `test/fixtures/sample_book.txt` is a complete example. Lines starting with `#` are notes.

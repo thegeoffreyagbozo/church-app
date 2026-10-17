@@ -3,6 +3,7 @@ library;
 
 export 'src/ids.dart';
 export 'src/model.dart';
+export 'src/music.dart';
 export 'src/parser.dart';
 export 'src/plan.dart';
 export 'src/public_domain.dart';
