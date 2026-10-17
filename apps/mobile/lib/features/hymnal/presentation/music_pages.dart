@@ -31,9 +31,13 @@ class MusicPages extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final image = ref.watch(musicImageProvider);
     final filter = ColorFilter.matrix(inkMatrix(theme.palette.ink));
+    // Its own node, with the tap on it: excluding the child semantics would drop the
+    // gesture detector's tap action.
     return Semantics(
+      container: true,
       button: onTap != null,
       label: l10n.musicImageLabel(hymn.title),
+      onTap: onTap,
       excludeSemantics: true,
       child: GestureDetector(
         onTap: onTap,
