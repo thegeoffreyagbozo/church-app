@@ -16,9 +16,16 @@ String shortSectionName(String name) {
 }
 
 /// The kicker above a hymn: "Hymn" in the default section, else the section's short
-/// name. Kickers are drawn in capitals.
-String hymnKicker(AppLocalizations l10n, Section section) =>
-    section.isDefault ? l10n.kickerHymn : shortSectionName(section.name);
+/// name, then the hymn's contents heading when the book gives one ("Hymn · His Birth";
+/// a "General" subheading names its part instead). Kickers are drawn in capitals.
+String hymnKicker(AppLocalizations l10n, Section section, {HymnGroup? group}) {
+  final base = section.isDefault
+      ? l10n.kickerHymn
+      : shortSectionName(section.name);
+  if (group == null) return base;
+  final general = group.part != null && group.name.toLowerCase() == 'general';
+  return '$base · ${general ? group.part : group.name}';
+}
 
 String readingKicker(AppLocalizations l10n, ReadingKind kind) => switch (kind) {
   ReadingKind.responsiveReading => l10n.kickerResponsiveReading,
