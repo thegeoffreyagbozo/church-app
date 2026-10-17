@@ -256,6 +256,8 @@ Ref: I Timothy 1:17
         (cleanup.parentId, cleanup.keep, cleanup.orderColumn),
         (hymn267Id, 2, 'sort_order'),
       );
+      // Only sheet music: other files of the hymn, such as audio, stay.
+      expect(cleanup.kind, 'sheet_music_image');
     },
   );
 

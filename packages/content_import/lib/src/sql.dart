@@ -26,7 +26,9 @@ String renderSql(ImportPlan plan) {
     out
       ..writeln('update public.${c.table} set deleted_at = now()')
       ..writeln('where ${c.parentColumn} = ${_literal(c.parentId)} '
-          'and ${c.orderColumn} >= ${c.keep} and deleted_at is null;')
+          'and ${c.orderColumn} >= ${c.keep} '
+          '${c.kind == null ? '' : 'and kind = ${_literal(c.kind)} '}'
+          'and deleted_at is null;')
       ..writeln();
   }
   out.writeln('commit;');
