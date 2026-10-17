@@ -1,4 +1,5 @@
 import 'package:content_db/content_db.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/database/content_providers.dart';
@@ -20,4 +21,11 @@ final sectionContentsProvider = FutureProvider.family<SectionContents, String>(
 
 final hymnProvider = FutureProvider.family<HymnDetail?, String>(
   (ref, id) => ref.watch(catalogProvider).hymn(id),
+);
+
+/// The image of one piece of a hymn's printed music, bundled beside the database.
+/// Tests swap in images made in memory.
+final musicImageProvider = Provider<ImageProvider Function(String id)>(
+  (ref) =>
+      (id) => AssetImage('assets/content/music/$id.png'),
 );

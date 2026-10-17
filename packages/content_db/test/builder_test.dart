@@ -70,4 +70,63 @@ void main() {
     addTearDown(db.close);
     expect(await db.select(db.readings).get(), hasLength(5));
   });
+
+  test('bundles the music of the hymns in the book, as <id>.png', () async {
+    final music = Directory('${dir.path}/bucket')..createSync();
+    for (final (path, w, h) in [
+      ('hymns/041-1.png', 1200, 900),
+      ('hymns/041-2.png', 1200, 500),
+      ('service-music/doxology-1.png', 1200, 700),
+    ]) {
+      File('${music.path}/$path')
+        ..createSync(recursive: true)
+        ..writeAsBytesSync(fakePng(w, h));
+    }
+    final out = '${dir.path}/content/content.db';
+    Directory(musicDirFor(out)).createSync(recursive: true);
+    File('${musicDirFor(out)}/stale.png').writeAsStringSync('old');
+
+    final summary = await buildContentDatabase(
+      loadSample(),
+      outPath: out,
+      builtAt: DateTime.utc(2026, 10, 17),
+      source: 'test',
+      musicFiles: DirectoryMusicFiles(music.path),
+    );
+
+    expect(summary.music, 3);
+    expect(
+      Directory(
+        musicDirFor(out),
+      ).listSync().map((f) => f.uri.pathSegments.last).toSet(),
+      {'music-41-1.png', 'music-41-2.png', 'music-doxology-1.png'},
+    );
+  });
+
+  test('without music files the folder is made but stays empty', () async {
+    final out = '${dir.path}/content.db';
+
+    final summary = await buildContentDatabase(
+      loadSample(),
+      outPath: out,
+      builtAt: DateTime.utc(2026, 10, 17),
+      source: 'test',
+    );
+
+    expect(summary.music, 0);
+    expect(Directory(musicDirFor(out)).listSync(), isEmpty);
+  });
+
+  test('a missing music file stops the build', () async {
+    await expectLater(
+      buildContentDatabase(
+        loadSample(),
+        outPath: '${dir.path}/content.db',
+        builtAt: DateTime.utc(2026, 10, 17),
+        source: 'test',
+        musicFiles: DirectoryMusicFiles('${dir.path}/empty'),
+      ),
+      throwsA(isA<MusicFileException>()),
+    );
+  });
 }

@@ -26,6 +26,11 @@ dart run content_db:build_content_db \
 - It writes `content.db` and a small `content.json` beside it; the app compares the build
   date in `content.json` with the copy on the phone to spot a newer bundle.
 - `--save-json <file>` also saves what was downloaded, in the fixture's format.
+- Sheet music (ADR 0011): each published hymn's music pieces (`hymn_assets` rows of kind
+  `sheet_music_image`) are downloaded from the public bucket into a `music/` folder beside
+  `content.db`, as `<id>.png`, and their sizes go in the database. A missing or broken file
+  stops the build. For `--from-json` builds, `--music-from <dir>` gives a folder laid out like
+  the bucket; without it the music is left out and the app shows the words instead.
 - The output is church content: it stays out of git (`apps/mobile/assets/content/` is
   ignored).
 

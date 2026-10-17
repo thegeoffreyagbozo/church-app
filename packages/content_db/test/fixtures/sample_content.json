@@ -131,5 +131,17 @@
     {"id": "00000000-0000-0000-0000-000000000001", "name": "Grace Chapel", "email": "hello@example.church",
      "phone": "+233 20 000 0000", "website": "https://example.church",
      "socials": {"whatsapp": "+233 20 000 0000", "facebook": "https://facebook.com/example"}}
+  ],
+  "hymn_assets": [
+    {"id": "music-41-1", "hymn_id": "hymn-41", "kind": "sheet_music_image", "storage_bucket": "sheet-music",
+     "storage_path": "hymns/041-1.png", "sort_order": 0},
+    {"id": "music-41-2", "hymn_id": "hymn-41", "kind": "sheet_music_image", "storage_bucket": "sheet-music",
+     "storage_path": "hymns/041-2.png", "sort_order": 1},
+    {"id": "music-doxology-1", "hymn_id": "hymn-doxology", "kind": "sheet_music_image",
+     "storage_bucket": "sheet-music", "storage_path": "service-music/doxology-1.png", "sort_order": 0},
+    {"id": "music-7-pdf", "hymn_id": "hymn-7", "kind": "sheet_music_pdf", "storage_bucket": "sheet-music",
+     "storage_path": "hymns/007.pdf", "sort_order": 0},
+    {"id": "music-gone-1", "hymn_id": "hymn-gone", "kind": "sheet_music_image", "storage_bucket": "sheet-music",
+     "storage_path": "hymns/999-1.png", "sort_order": 0}
   ]
 }

@@ -23,9 +23,19 @@ void main() {
       final source = SupabaseContentSource(url: url!, key: key!);
       addTearDown(source.close);
       final out = '${dir.path}/content.db';
+      final snapshot = await source.fetch();
+      // CI imports the sample with its music map; only published hymns' music comes back.
+      expect(
+        bundledMusic(snapshot).map((r) => r['storage_path']),
+        contains('hymns/001-1.png'),
+      );
+      expect(
+        bundledMusic(snapshot).map((r) => r['storage_path']),
+        isNot(contains('hymns/002-1.png')),
+      );
 
       await buildContentDatabase(
-        await source.fetch(),
+        snapshot,
         outPath: out,
         builtAt: DateTime.now().toUtc(),
         source: 'ci',
