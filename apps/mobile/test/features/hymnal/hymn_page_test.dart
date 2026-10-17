@@ -22,7 +22,7 @@ void main() {
   testWidgets('shows the kicker, number, title and credits', (tester) async {
     await pumpApp(tester, db, location: '/hymn/hymn-41');
 
-    expect(find.text('HYMN'), findsOneWidget);
+    expect(find.text('HYMN · SONGS OF ASSURANCE AND TRUST'), findsOneWidget);
     expect(find.text('41'), findsOneWidget);
     expect(find.text('How Firm a Foundation'), findsOneWidget);
     expect(
@@ -32,6 +32,14 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('a "General" heading names its part in the label', (
+    tester,
+  ) async {
+    await pumpApp(tester, db, location: '/hymn/hymn-1');
+
+    expect(find.text('HYMN · HYMNS OF WORSHIP'), findsOneWidget);
   });
 
   testWidgets('names other sections and joins a translation credit', (
