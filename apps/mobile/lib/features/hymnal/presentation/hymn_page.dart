@@ -1,9 +1,11 @@
 import 'package:content_db/content_db.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared/shared.dart';
 
 import '../../../core/labels.dart';
+import '../../../core/router/app_router.dart';
 import '../../../core/theme/hymnal_theme.dart';
 import '../../../core/widgets/item_page.dart';
 import '../../../core/widgets/missing_item.dart';
@@ -79,7 +81,7 @@ class _Hymn extends ConsumerWidget {
       children: [
         if (music) MusicCard(hymn),
         if (showMusic) ...[
-          MusicPages(hymn),
+          MusicPages(hymn, onTap: () => context.push(hymnMusicPath(hymn.id))),
           Text(
             l10n.tapToZoom,
             textAlign: TextAlign.center,
