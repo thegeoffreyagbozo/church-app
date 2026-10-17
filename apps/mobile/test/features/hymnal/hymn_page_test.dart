@@ -145,6 +145,7 @@ void main() {
   testWidgets('keeps the screen on while open, then lets it sleep', (
     tester,
   ) async {
+    useTallScreen(tester);
     final platform = await pumpApp(
       tester,
       db,
