@@ -76,6 +76,22 @@ void main() {
     );
   }
 
+  testWidgets('a screen reader can open the music full screen', (tester) async {
+    useTallScreen(tester);
+    final semantics = tester.ensureSemantics();
+    await pumpApp(tester, db, location: '/hymn/hymn-41', settings: music);
+
+    expect(
+      tester.getSemantics(find.byType(MusicPages)),
+      isSemantics(
+        label: 'Printed music of How Firm a Foundation',
+        isButton: true,
+        hasTapAction: true,
+      ),
+    );
+    semantics.dispose();
+  });
+
   testWidgets('a music file the app lacks shows a line, not a broken image', (
     tester,
   ) async {
