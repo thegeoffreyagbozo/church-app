@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:church_app/core/config/church_config.dart';
 import 'package:church_app/core/database/content_providers.dart';
+import 'package:church_app/core/widgets/item_row.dart';
 import 'package:church_app/features/home/presentation/home_screen.dart';
 import 'package:content_db/content_db.dart';
 import 'package:drift/drift.dart' show Value;
@@ -156,17 +157,20 @@ void main() {
   );
 
   testWidgets('a numbered section lists its hymns by number', (tester) async {
+    useTallScreen(tester);
     await pumpApp(tester, db);
 
     await tester.tap(onHome('Hymns'));
     await tester.pumpAndSettle();
 
-    final numbers = [
-      '1',
-      '2',
-      '7',
-      '41',
-    ].map((n) => tester.getTopLeft(find.text(n)).dy);
+    // Within the rows: a part's range label can also read "7".
+    final numbers = ['1', '2', '7', '41'].map(
+      (n) => tester
+          .getTopLeft(
+            find.descendant(of: find.byType(ItemRow), matching: find.text(n)),
+          )
+          .dy,
+    );
     expect(numbers.toList(), orderedEquals([...numbers]..sort()));
     expect(find.text('Rock of Ages, cleft for me'), findsOneWidget);
   });
