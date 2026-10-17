@@ -8,12 +8,14 @@ import '../data/hymnal_providers.dart';
 
 /// A colour matrix that draws a black-and-white scan as [ink] on a clear page: black
 /// becomes [ink], white becomes transparent, greys in between. So Paper shows dark ink
-/// on paper and Night light ink on dark.
+/// on paper and Night light ink on dark. Alpha is the pixel's own alpha less its
+/// brightness, so clear pixels stay clear: a filter that made them opaque would be
+/// painted over everything around the image.
 List<double> inkMatrix(Color ink) => [
   0, 0, 0, 0, ink.r * 255, //
   0, 0, 0, 0, ink.g * 255,
   0, 0, 0, 0, ink.b * 255,
-  -0.2126, -0.7152, -0.0722, 0, 255,
+  -0.2126, -0.7152, -0.0722, 1, 0,
 ];
 
 /// A hymn's printed music, piece under piece, the width of the page.

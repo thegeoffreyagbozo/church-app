@@ -1,4 +1,6 @@
 import 'package:church_app/features/hymnal/presentation/hymn_page.dart';
+import 'package:church_app/features/hymnal/presentation/hymn_text_block.dart';
+import 'package:church_app/features/hymnal/presentation/music_pages.dart';
 import 'package:church_app/features/settings/domain/reading_settings.dart';
 import 'package:church_app/features/settings/presentation/settings_controller.dart';
 import 'package:content_db/content_db.dart';
@@ -69,6 +71,72 @@ void main() {
       ),
       findsNWidgets(2),
     );
+  });
+
+  testWidgets('Music shows the printed music instead of the words', (
+    tester,
+  ) async {
+    await pumpApp(
+      tester,
+      db,
+      location: '/hymn/hymn-41',
+      settings: const ReadingSettings(
+        theme: ReadingTheme.paper,
+        hymnView: HymnViewMode.chorister,
+      ),
+    );
+
+    expect(find.byType(MusicPages), findsOneWidget);
+    expect(find.byType(HymnTextBlock), findsNothing);
+    expect(
+      find.text('Tap the music to see it full screen and zoom.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Music without printed music keeps the words and says so', (
+    tester,
+  ) async {
+    await pumpApp(tester, db, location: '/hymn/supp-1');
+    await tester.tap(find.byTooltip('Music'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MusicPages), findsNothing);
+    expect(find.byType(HymnTextBlock), findsWidgets);
+    expect(
+      find.text('The choir book has no printed music for this hymn.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a pinch over the music leaves the text size alone', (
+    tester,
+  ) async {
+    await pumpApp(
+      tester,
+      db,
+      location: '/hymn/hymn-41',
+      settings: const ReadingSettings(
+        theme: ReadingTheme.paper,
+        hymnView: HymnViewMode.chorister,
+      ),
+    );
+    final center = tester.getCenter(find.byType(CustomScrollView));
+    final first = await tester.startGesture(
+      center - const Offset(0, 40),
+      pointer: 7,
+    );
+    final second = await tester.startGesture(
+      center + const Offset(0, 40),
+      pointer: 8,
+    );
+    await first.moveBy(const Offset(0, -20));
+    await second.moveBy(const Offset(0, 20));
+    await first.up();
+    await second.up();
+    await tester.pumpAndSettle();
+
+    expect(settingsOf(tester).textScale, 1.0);
   });
 
   testWidgets('Music shows only what the book prints', (tester) async {

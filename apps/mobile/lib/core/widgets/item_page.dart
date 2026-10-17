@@ -28,6 +28,7 @@ class ItemPage extends ConsumerStatefulWidget {
     required this.children,
     this.number,
     this.subtitle,
+    this.resizable = true,
   });
 
   final String kicker;
@@ -38,6 +39,10 @@ class ItemPage extends ConsumerStatefulWidget {
   final String? subtitle;
   final List<Widget> actions;
   final List<Widget> children;
+
+  /// Whether a pinch changes the text size. Off over printed music, where people
+  /// pinch to zoom and the full-screen view does that.
+  final bool resizable;
 
   @override
   ConsumerState<ItemPage> createState() => _ItemPageState();
@@ -88,92 +93,82 @@ class _ItemPageState extends ConsumerState<ItemPage> {
     final side = sidePadding(context, min: 22);
     final settings = ref.watch(readingSettingsProvider);
     final controller = ref.read(readingSettingsProvider.notifier);
+    final page = CustomScrollView(
+      controller: _scroll,
+      slivers: [
+        // A box adapter keeps the header built however far the page
+        // scrolls; the pinned bar measures the title in it.
+        SliverPadding(
+          padding: EdgeInsets.fromLTRB(
+            side,
+            padding.top + _barHeight + 8,
+            side,
+            0,
+          ),
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(widget.kicker.toUpperCase(), style: theme.text.kicker),
+                if (widget.number != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(
+                      '${widget.number}',
+                      style: theme.text.bigNumber,
+                    ),
+                  ),
+                Padding(
+                  key: _titleKey,
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Semantics(
+                    header: true,
+                    child: Text(widget.title, style: theme.text.pageTitle),
+                  ),
+                ),
+                if (widget.subtitle != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(widget.subtitle!, style: theme.text.credits),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  child: Divider(color: theme.palette.rule),
+                ),
+              ],
+            ),
+          ),
+        ),
+        SliverPadding(
+          padding: EdgeInsets.fromLTRB(side, 0, side, 48 + padding.bottom),
+          sliver: SliverList.list(
+            children: [
+              // Only the words take the reader's text size; the header
+              // keeps the phone's, so the number never crowds them out.
+              ReadingTextScale(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: widget.children,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
     return Scaffold(
       body: KeepScreenOn(
         child: Stack(
           children: [
-            PinchToResize(
-              scale: settings.textScale,
-              onChanged: controller.previewTextScale,
-              onEnd: controller.commitTextScale,
-              child: CustomScrollView(
-                controller: _scroll,
-                slivers: [
-                  // A box adapter keeps the header built however far the page
-                  // scrolls; the pinned bar measures the title in it.
-                  SliverPadding(
-                    padding: EdgeInsets.fromLTRB(
-                      side,
-                      padding.top + _barHeight + 8,
-                      side,
-                      0,
-                    ),
-                    sliver: SliverToBoxAdapter(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            widget.kicker.toUpperCase(),
-                            style: theme.text.kicker,
-                          ),
-                          if (widget.number != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 6),
-                              child: Text(
-                                '${widget.number}',
-                                style: theme.text.bigNumber,
-                              ),
-                            ),
-                          Padding(
-                            key: _titleKey,
-                            padding: const EdgeInsets.only(top: 6),
-                            child: Semantics(
-                              header: true,
-                              child: Text(
-                                widget.title,
-                                style: theme.text.pageTitle,
-                              ),
-                            ),
-                          ),
-                          if (widget.subtitle != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 6),
-                              child: Text(
-                                widget.subtitle!,
-                                style: theme.text.credits,
-                              ),
-                            ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 18),
-                            child: Divider(color: theme.palette.rule),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SliverPadding(
-                    padding: EdgeInsets.fromLTRB(
-                      side,
-                      0,
-                      side,
-                      48 + padding.bottom,
-                    ),
-                    sliver: SliverList.list(
-                      children: [
-                        // Only the words take the reader's text size; the header
-                        // keeps the phone's, so the number never crowds them out.
-                        ReadingTextScale(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: widget.children,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            if (widget.resizable)
+              PinchToResize(
+                scale: settings.textScale,
+                onChanged: controller.previewTextScale,
+                onEnd: controller.commitTextScale,
+                child: page,
+              )
+            else
+              page,
             Positioned(
               top: 0,
               left: 0,
