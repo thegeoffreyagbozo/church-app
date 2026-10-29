@@ -13,10 +13,30 @@ String oldHundredth() {
     [7],
   ];
   const voices = [
-    (staff: 1, voice: 1, stem: 'up', pitches: ['G4', 'G4', 'F#4', 'E4', 'D4', 'G4', 'A4', 'B4']),
-    (staff: 1, voice: 2, stem: 'down', pitches: ['D4', 'D4', 'D4', 'B3', 'B3', 'D4', 'D4', 'D4']),
-    (staff: 2, voice: 5, stem: 'up', pitches: ['B3', 'B3', 'A3', 'G3', 'G3', 'B3', 'F#3', 'G3']),
-    (staff: 2, voice: 6, stem: 'down', pitches: ['G2', 'G2', 'D3', 'E3', 'G2', 'G3', 'D3', 'G2']),
+    (
+      staff: 1,
+      voice: 1,
+      stem: 'up',
+      pitches: ['G4', 'G4', 'F#4', 'E4', 'D4', 'G4', 'A4', 'B4'],
+    ),
+    (
+      staff: 1,
+      voice: 2,
+      stem: 'down',
+      pitches: ['D4', 'D4', 'D4', 'B3', 'B3', 'D4', 'D4', 'D4'],
+    ),
+    (
+      staff: 2,
+      voice: 5,
+      stem: 'up',
+      pitches: ['B3', 'B3', 'A3', 'G3', 'G3', 'B3', 'F#3', 'G3'],
+    ),
+    (
+      staff: 2,
+      voice: 6,
+      stem: 'down',
+      pitches: ['G2', 'G2', 'D3', 'E3', 'G2', 'G3', 'D3', 'G2'],
+    ),
   ];
   const verses = [
     ['All', 'peo', 'ple', 'that', 'on', 'earth', 'do', 'dwell'],
@@ -26,9 +46,12 @@ String oldHundredth() {
   ];
   // Syllables that start or end a word split across notes; every other one is 'single'.
   const split = {
-    (0, 1): 'begin', (0, 2): 'end',
-    (1, 6): 'begin', (1, 7): 'end',
-    (2, 1): 'begin', (2, 2): 'end',
+    (0, 1): 'begin',
+    (0, 2): 'end',
+    (1, 6): 'begin',
+    (1, 7): 'end',
+    (2, 1): 'begin',
+    (2, 2): 'end',
   };
   const types = {1: 'quarter', 2: 'half', 4: 'whole'};
 
@@ -67,7 +90,9 @@ String oldHundredth() {
           '${v.voice == 1 ? lyrics(n) : ''}</note>',
         );
       }
-      if (i < voices.length - 1) measures.write('<backup><duration>4</duration></backup>');
+      if (i < voices.length - 1) {
+        measures.write('<backup><duration>4</duration></backup>');
+      }
     }
     measures.write('</measure>');
   }
