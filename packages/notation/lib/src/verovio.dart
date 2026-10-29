@@ -82,11 +82,17 @@ class Verovio {
       if (!_loadData(_toolkit, input)) {
         throw NotationException(_getLog(_toolkit).toDartString());
       }
-      final pages = _getPageCount(_toolkit);
-      return [
-        for (var page = 1; page <= pages; page++)
+      final count = _getPageCount(_toolkit);
+      final pages = [
+        for (var page = 1; page <= count; page++)
           _renderToSvg(_toolkit, page, false).toDartString(),
       ];
+      // A cut-off file loads without complaint and draws an empty page; treat a drawing
+      // with no notes as a failure so the app falls back to the scanned music.
+      if (!pages.any((svg) => svg.contains('class="note"'))) {
+        throw NotationException('Nothing to draw: ${_getLog(_toolkit).toDartString()}');
+      }
+      return pages;
     } finally {
       calloc.free(options);
       calloc.free(input);
