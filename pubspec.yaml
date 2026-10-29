@@ -13,6 +13,8 @@ workspace:
   - apps/mobile
   - packages/content_db
   - packages/content_import
+  - packages/notation
+  - packages/notation/example
   - packages/shared
 
 dev_dependencies:
