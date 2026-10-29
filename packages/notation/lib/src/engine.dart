@@ -6,6 +6,7 @@ import 'package:xml/xml.dart';
 
 import 'options.dart';
 import 'parts.dart';
+import 'render_cache.dart';
 import 'resources.dart';
 import 'verovio.dart';
 import 'verses.dart';
@@ -16,6 +17,7 @@ class NotationEngine {
   NotationEngine._(this._requests, this.verovioVersion);
 
   final SendPort _requests;
+  final _cache = RenderCache();
 
   /// Verovio's version string, for the Licences screen and logs.
   final String verovioVersion;
@@ -40,6 +42,10 @@ class NotationEngine {
     Part? part,
     int scale = defaultScale,
   }) async {
+    final key = (musicXml, width, verse, part, scale);
+    final cached = _cache.get(key);
+    if (cached != null) return cached;
+
     final String data;
     try {
       data = keepVerse(musicXml, verse);
@@ -50,8 +56,10 @@ class NotationEngine {
     _requests.send((reply.sendPort, data, verovioOptions(width: width, scale: scale)));
     final result = await reply.first;
     if (result is NotationException) throw result;
-    final pages = result as List<String>;
-    return part == null ? pages : [for (final page in pages) fadeOtherParts(page, part)];
+    final drawn = result as List<String>;
+    final pages = part == null ? drawn : [for (final page in drawn) fadeOtherParts(page, part)];
+    _cache.put(key, pages);
+    return pages;
   }
 
   /// Stops the isolate; the engine can't draw after this.

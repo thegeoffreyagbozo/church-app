@@ -69,4 +69,11 @@ void main() {
     expect(results[1].single, contains('God'));
     expect(results[2].single, contains('gates'));
   });
+
+  test('a repeat drawing comes from the cache', () async {
+    final first = await engine.render(oldHundredth(), width: 360, verse: 4, part: Part.bass);
+    final again = await engine.render(oldHundredth(), width: 360, verse: 4, part: Part.bass);
+
+    expect(identical(first, again), isTrue);
+  });
 }
