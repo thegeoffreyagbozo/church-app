@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:xml/xml.dart';
 
 import 'options.dart';
+import 'parts.dart';
 import 'resources.dart';
 import 'verovio.dart';
 import 'verses.dart';
@@ -31,11 +32,12 @@ class NotationEngine {
   }
 
   /// One SVG per page for [musicXml] drawn [width] logical pixels wide at [scale], with
-  /// [verse]'s words under the notes.
+  /// [verse]'s words under the notes and, when [part] is given, the other voices faded.
   Future<List<String>> render(
     String musicXml, {
     required double width,
     required int verse,
+    Part? part,
     int scale = defaultScale,
   }) async {
     final String data;
@@ -48,7 +50,8 @@ class NotationEngine {
     _requests.send((reply.sendPort, data, verovioOptions(width: width, scale: scale)));
     final result = await reply.first;
     if (result is NotationException) throw result;
-    return result as List<String>;
+    final pages = result as List<String>;
+    return part == null ? pages : [for (final page in pages) fadeOtherParts(page, part)];
   }
 
   /// Stops the isolate; the engine can't draw after this.

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:notation/notation.dart';
 import 'package:notation/testing.dart';
+import 'package:xml/xml.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -40,5 +41,32 @@ void main() {
     expect(first, isNot(contains('God')));
     expect(second, contains('God'));
     expect(second, isNot(contains('dwell')));
+  });
+
+  test('Verovio numbers staves and voices so parts can be faded', () async {
+    final svg = (await engine.render(oldHundredth(), width: 400, verse: 1, part: Part.alto))
+        .single;
+    final layers = XmlDocument.parse(svg)
+        .findAllElements('g')
+        .where((g) => (g.getAttribute('class') ?? '').split(' ').contains('layer'))
+        .toList();
+
+    expect(
+      layers.where((g) => g.getAttribute('fill-opacity') == '$fadedOpacity'),
+      hasLength(3 * 3), // three faded voices in each of the three bars
+    );
+    expect(layers.where((g) => g.getAttribute('fill-opacity') == null), hasLength(3));
+  });
+
+  test('renders sent back to back each get their own drawing', () async {
+    final results = await Future.wait([
+      engine.render(oldHundredth(), width: 400, verse: 1),
+      engine.render(oldHundredth(), width: 400, verse: 2),
+      engine.render(oldHundredth(), width: 400, verse: 3),
+    ]);
+
+    expect(results[0].single, contains('dwell'));
+    expect(results[1].single, contains('God'));
+    expect(results[2].single, contains('gates'));
   });
 }
