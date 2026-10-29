@@ -31,4 +31,14 @@ void main() {
     final pages = await engine.render(oldHundredth(), width: 400, verse: 1);
     expect(pages, hasLength(1));
   });
+
+  test('only the chosen verse is drawn', () async {
+    final first = (await engine.render(oldHundredth(), width: 400, verse: 1)).single;
+    final second = (await engine.render(oldHundredth(), width: 400, verse: 2)).single;
+
+    expect(first, contains('dwell'));
+    expect(first, isNot(contains('God')));
+    expect(second, contains('God'));
+    expect(second, isNot(contains('dwell')));
+  });
 }
