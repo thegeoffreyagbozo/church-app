@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:notation/src/options.dart';
 
-Map<String, Object?> _decode(String json) => jsonDecode(json) as Map<String, Object?>;
+Map<String, Object?> _decode(String json) =>
+    jsonDecode(json) as Map<String, Object?>;
 
 void main() {
   test('the page is as wide as the screen at the given scale', () {
@@ -15,6 +16,7 @@ void main() {
     expect(options['breaks'], 'auto');
     expect(options['adjustPageHeight'], true);
     expect(options['svgAdditionalAttribute'], ['staff@n', 'layer@n']);
+    expect(options['lyricWordSpace'], 2.4);
   });
 
   test('an extreme scale is clamped', () {
@@ -24,6 +26,9 @@ void main() {
 
   test('a tiny or huge width still gives Verovio a page it accepts', () {
     expect(_decode(verovioOptions(width: 1, scale: 40))['pageWidth'], 500);
-    expect(_decode(verovioOptions(width: 100000, scale: 20))['pageWidth'], 60000);
+    expect(
+      _decode(verovioOptions(width: 100000, scale: 20))['pageWidth'],
+      60000,
+    );
   });
 }

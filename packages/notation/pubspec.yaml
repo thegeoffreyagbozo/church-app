@@ -31,3 +31,8 @@ flutter:
         ffiPlugin: true
   assets:
     - assets/verovio-6.3.0.zip
+  fonts:
+    # Times' letter widths, which Verovio spaces the words by (SIL OFL 1.1).
+    - family: Tinos
+      fonts:
+        - asset: assets/fonts/Tinos-Regular.ttf

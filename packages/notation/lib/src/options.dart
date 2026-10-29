@@ -25,5 +25,7 @@ String verovioOptions({required double width, required int scale}) {
     'pageMarginBottom': 20,
     'font': 'Leland',
     'svgAdditionalAttribute': ['staff@n', 'layer@n'],
+    // Twice Verovio's gap between words, so a phone's narrow lines stay readable.
+    'lyricWordSpace': 2.4,
   });
 }

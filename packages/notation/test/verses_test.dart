@@ -4,7 +4,8 @@ import 'package:notation/testing.dart';
 import 'package:xml/xml.dart';
 
 List<String> _words(String musicXml) => [
-  for (final text in XmlDocument.parse(musicXml).findAllElements('text')) text.innerText,
+  for (final text in XmlDocument.parse(musicXml).findAllElements('text'))
+    text.innerText,
 ];
 
 void main() {
@@ -19,7 +20,8 @@ void main() {
   });
 
   test('a lyric with no number counts as verse 1', () {
-    const xml = '<score-partwise><note><lyric><text>Hal</text></lyric>'
+    const xml =
+        '<score-partwise><note><lyric><text>Hal</text></lyric>'
         '<lyric number="2"><text>Glo</text></lyric></note></score-partwise>';
 
     expect(_words(keepVerse(xml, 1)), ['Hal']);
