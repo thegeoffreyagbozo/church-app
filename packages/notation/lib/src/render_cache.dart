@@ -1,7 +1,13 @@
 import 'parts.dart';
 
 /// What a drawing depends on. The theme isn't part of it: the widget tints the drawing.
-typedef RenderKey = (String musicXml, double width, int verse, Part? part, int scale);
+typedef RenderKey = (
+  String musicXml,
+  double width,
+  int verse,
+  Part? part,
+  int scale,
+);
 
 /// The last [capacity] drawings, least recently used dropped first.
 class RenderCache {

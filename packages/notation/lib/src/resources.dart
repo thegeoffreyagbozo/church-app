@@ -16,7 +16,9 @@ const completeMarker = '.complete';
 Future<String> installResources(AssetBundle bundle, {Directory? into}) async {
   final base = into ?? await getApplicationSupportDirectory();
   final folder = Directory(p.join(base.path, 'verovio-6.3.0'));
-  if (File(p.join(folder.path, completeMarker)).existsSync()) return folder.path;
+  if (File(p.join(folder.path, completeMarker)).existsSync()) {
+    return folder.path;
+  }
 
   if (folder.existsSync()) folder.deleteSync(recursive: true);
   folder.createSync(recursive: true);

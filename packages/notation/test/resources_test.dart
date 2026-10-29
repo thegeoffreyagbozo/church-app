@@ -22,7 +22,9 @@ class _ZipBundle extends CachingAssetBundle {
 
 Uint8List _zipOf(Map<String, String> files) {
   final archive = Archive();
-  files.forEach((name, text) => archive.addFile(ArchiveFile.string(name, text)));
+  files.forEach(
+    (name, text) => archive.addFile(ArchiveFile.string(name, text)),
+  );
   return Uint8List.fromList(ZipEncoder().encode(archive));
 }
 
@@ -33,7 +35,9 @@ void main() {
   tearDown(() => root.deleteSync(recursive: true));
 
   test('unpacks the fonts and returns the folder Verovio reads', () async {
-    final bundle = _ZipBundle(_zipOf({'Leland.xml': '<font/>', 'Leland/E0A4.xml': '<g/>'}));
+    final bundle = _ZipBundle(
+      _zipOf({'Leland.xml': '<font/>', 'Leland/E0A4.xml': '<g/>'}),
+    );
 
     final path = await installResources(bundle, into: root);
 
@@ -41,15 +45,18 @@ void main() {
     expect(File('$path/Leland/E0A4.xml').readAsStringSync(), '<g/>');
   });
 
-  test('a finished install is reused without reading the asset again', () async {
-    final bundle = _ZipBundle(_zipOf({'Leland.xml': '<font/>'}));
+  test(
+    'a finished install is reused without reading the asset again',
+    () async {
+      final bundle = _ZipBundle(_zipOf({'Leland.xml': '<font/>'}));
 
-    final first = await installResources(bundle, into: root);
-    final second = await installResources(bundle, into: root);
+      final first = await installResources(bundle, into: root);
+      final second = await installResources(bundle, into: root);
 
-    expect(second, first);
-    expect(bundle.loads, 1);
-  });
+      expect(second, first);
+      expect(bundle.loads, 1);
+    },
+  );
 
   test('an install cut short (no marker) is done again', () async {
     final bundle = _ZipBundle(_zipOf({'Leland.xml': '<font/>'}));

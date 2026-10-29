@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:flutter/services.dart';
 import 'package:xml/xml.dart';
 
+import 'flatten.dart';
 import 'options.dart';
 import 'parts.dart';
 import 'render_cache.dart';
@@ -34,7 +35,8 @@ class NotationEngine {
   }
 
   /// One SVG per page for [musicXml] drawn [width] logical pixels wide at [scale], with
-  /// [verse]'s words under the notes and, when [part] is given, the other voices faded.
+  /// [verse]'s words under the notes and, when [part] is given, the other voices faded,
+  /// reshaped so `flutter_svg` can draw it.
   Future<List<String>> render(
     String musicXml, {
     required double width,
@@ -53,11 +55,18 @@ class NotationEngine {
       throw NotationException('Not MusicXML: ${e.message}');
     }
     final reply = ReceivePort();
-    _requests.send((reply.sendPort, data, verovioOptions(width: width, scale: scale)));
+    _requests.send((
+      reply.sendPort,
+      data,
+      verovioOptions(width: width, scale: scale),
+    ));
     final result = await reply.first;
     if (result is NotationException) throw result;
     final drawn = result as List<String>;
-    final pages = part == null ? drawn : [for (final page in drawn) fadeOtherParts(page, part)];
+    final pages = [
+      for (final page in drawn)
+        flattenForFlutter(part == null ? page : fadeOtherParts(page, part)),
+    ];
     _cache.put(key, pages);
     return pages;
   }

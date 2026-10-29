@@ -30,12 +30,20 @@ typedef _Log = void Function(bool);
 /// each instance on the isolate that opened it.
 class Verovio {
   Verovio._(this._toolkit, DynamicLibrary lib)
-    : _destructor = lib.lookupFunction<_VoidPtrC, _VoidPtr>('vrvToolkit_destructor'),
+    : _destructor = lib.lookupFunction<_VoidPtrC, _VoidPtr>(
+        'vrvToolkit_destructor',
+      ),
       _getVersion = lib.lookupFunction<_StrC, _StrC>('vrvToolkit_getVersion'),
       _getLog = lib.lookupFunction<_StrC, _StrC>('vrvToolkit_getLog'),
-      _setOptions = lib.lookupFunction<_BoolStrC, _BoolStr>('vrvToolkit_setOptions'),
-      _loadData = lib.lookupFunction<_BoolStrC, _BoolStr>('vrvToolkit_loadData'),
-      _getPageCount = lib.lookupFunction<_IntC, _Int>('vrvToolkit_getPageCount'),
+      _setOptions = lib.lookupFunction<_BoolStrC, _BoolStr>(
+        'vrvToolkit_setOptions',
+      ),
+      _loadData = lib.lookupFunction<_BoolStrC, _BoolStr>(
+        'vrvToolkit_loadData',
+      ),
+      _getPageCount = lib.lookupFunction<_IntC, _Int>(
+        'vrvToolkit_getPageCount',
+      ),
       _renderToSvg = lib.lookupFunction<_SvgC, _Svg>('vrvToolkit_renderToSVG');
 
   /// Opens a toolkit reading its fonts from [resourcePath] (the unpacked data folder), or
@@ -45,7 +53,9 @@ class Verovio {
     lib.lookupFunction<_LogC, _Log>('enableLogToBuffer')(true);
     final Pointer<Void> toolkit;
     if (resourcePath == null) {
-      toolkit = lib.lookupFunction<_CtorC, _CtorC>('vrvToolkit_constructorNoResource')();
+      toolkit = lib.lookupFunction<_CtorC, _CtorC>(
+        'vrvToolkit_constructorNoResource',
+      )();
     } else {
       final path = resourcePath.toNativeUtf8();
       try {
@@ -56,7 +66,9 @@ class Verovio {
         calloc.free(path);
       }
     }
-    if (toolkit == nullptr) throw const NotationException('Verovio did not start');
+    if (toolkit == nullptr) {
+      throw const NotationException('Verovio did not start');
+    }
     return Verovio._(toolkit, lib);
   }
 
@@ -77,7 +89,9 @@ class Verovio {
     final input = data.toNativeUtf8();
     try {
       if (!_setOptions(_toolkit, options)) {
-        throw NotationException('Options refused: ${_getLog(_toolkit).toDartString()}');
+        throw NotationException(
+          'Options refused: ${_getLog(_toolkit).toDartString()}',
+        );
       }
       if (!_loadData(_toolkit, input)) {
         throw NotationException(_getLog(_toolkit).toDartString());
@@ -90,7 +104,9 @@ class Verovio {
       // A cut-off file loads without complaint and draws an empty page; treat a drawing
       // with no notes as a failure so the app falls back to the scanned music.
       if (!pages.any((svg) => svg.contains('class="note"'))) {
-        throw NotationException('Nothing to draw: ${_getLog(_toolkit).toDartString()}');
+        throw NotationException(
+          'Nothing to draw: ${_getLog(_toolkit).toDartString()}',
+        );
       }
       return pages;
     } finally {

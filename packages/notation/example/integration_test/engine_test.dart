@@ -34,8 +34,16 @@ void main() {
   });
 
   test('only the chosen verse is drawn', () async {
-    final first = (await engine.render(oldHundredth(), width: 400, verse: 1)).single;
-    final second = (await engine.render(oldHundredth(), width: 400, verse: 2)).single;
+    final first = (await engine.render(
+      oldHundredth(),
+      width: 400,
+      verse: 1,
+    )).single;
+    final second = (await engine.render(
+      oldHundredth(),
+      width: 400,
+      verse: 2,
+    )).single;
 
     expect(first, contains('dwell'));
     expect(first, isNot(contains('God')));
@@ -44,18 +52,44 @@ void main() {
   });
 
   test('Verovio numbers staves and voices so parts can be faded', () async {
-    final svg = (await engine.render(oldHundredth(), width: 400, verse: 1, part: Part.alto))
-        .single;
-    final layers = XmlDocument.parse(svg)
+    final svg = (await engine.render(
+      oldHundredth(),
+      width: 400,
+      verse: 1,
+      part: Part.alto,
+    )).single;
+    final heads = XmlDocument.parse(svg)
         .findAllElements('g')
-        .where((g) => (g.getAttribute('class') ?? '').split(' ').contains('layer'))
+        .where(
+          (g) =>
+              (g.getAttribute('class') ?? '').split(' ').contains('notehead'),
+        )
+        .map((g) => g.findElements('use').first.getAttribute('fill-opacity'))
         .toList();
 
-    expect(
-      layers.where((g) => g.getAttribute('fill-opacity') == '$fadedOpacity'),
-      hasLength(3 * 3), // three faded voices in each of the three bars
-    );
-    expect(layers.where((g) => g.getAttribute('fill-opacity') == null), hasLength(3));
+    expect(heads.where((o) => o == '$fadedOpacity'), hasLength(24)); // S, T, B
+    expect(heads.where((o) => o == null), hasLength(8)); // the alto
+  });
+
+  test('the words stay in full ink when the soprano is faded', () async {
+    final svg = (await engine.render(
+      oldHundredth(),
+      width: 400,
+      verse: 1,
+      part: Part.bass,
+    )).single;
+    final verses = XmlDocument.parse(svg)
+        .findAllElements('g')
+        .where(
+          (g) => (g.getAttribute('class') ?? '').split(' ').contains('verse'),
+        );
+
+    expect(verses, isNotEmpty);
+    for (final verse in verses) {
+      for (final element in [verse, ...verse.descendantElements]) {
+        expect(element.getAttribute('fill-opacity'), isNull);
+      }
+    }
   });
 
   test('renders sent back to back each get their own drawing', () async {
@@ -71,9 +105,35 @@ void main() {
   });
 
   test('a repeat drawing comes from the cache', () async {
-    final first = await engine.render(oldHundredth(), width: 360, verse: 4, part: Part.bass);
-    final again = await engine.render(oldHundredth(), width: 360, verse: 4, part: Part.bass);
+    final first = await engine.render(
+      oldHundredth(),
+      width: 360,
+      verse: 4,
+      part: Part.bass,
+    );
+    final again = await engine.render(
+      oldHundredth(),
+      width: 360,
+      verse: 4,
+      part: Part.bass,
+    );
 
     expect(identical(first, again), isTrue);
   });
+
+  test(
+    'drawings come out in a shape flutter_svg can draw (no nested svg)',
+    () async {
+      final svg = (await engine.render(
+        oldHundredth(),
+        width: 400,
+        verse: 1,
+      )).single;
+
+      expect(
+        XmlDocument.parse(svg).rootElement.findAllElements('svg'),
+        isEmpty,
+      );
+    },
+  );
 }
