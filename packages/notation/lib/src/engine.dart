@@ -2,10 +2,12 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:flutter/services.dart';
+import 'package:xml/xml.dart';
 
 import 'options.dart';
 import 'resources.dart';
 import 'verovio.dart';
+import 'verses.dart';
 
 /// Draws MusicXML with Verovio on one long-lived background isolate, which owns the only
 /// toolkit (a toolkit must stay on one thread). Requests queue to it in order.
@@ -28,15 +30,22 @@ class NotationEngine {
     return NotationEngine._(requests, version);
   }
 
-  /// One SVG per page for [musicXml] drawn [width] logical pixels wide at [scale].
+  /// One SVG per page for [musicXml] drawn [width] logical pixels wide at [scale], with
+  /// [verse]'s words under the notes.
   Future<List<String>> render(
     String musicXml, {
     required double width,
     required int verse,
     int scale = defaultScale,
   }) async {
+    final String data;
+    try {
+      data = keepVerse(musicXml, verse);
+    } on XmlException catch (e) {
+      throw NotationException('Not MusicXML: ${e.message}');
+    }
     final reply = ReceivePort();
-    _requests.send((reply.sendPort, musicXml, verovioOptions(width: width, scale: scale)));
+    _requests.send((reply.sendPort, data, verovioOptions(width: width, scale: scale)));
     final result = await reply.first;
     if (result is NotationException) throw result;
     return result as List<String>;
