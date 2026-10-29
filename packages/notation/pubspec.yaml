@@ -29,3 +29,5 @@ flutter:
     platforms:
       android:
         ffiPlugin: true
+  assets:
+    - assets/verovio-6.3.0.zip
