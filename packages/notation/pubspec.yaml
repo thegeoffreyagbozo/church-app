@@ -1,0 +1,31 @@
+name: notation
+description: Draws a hymn's MusicXML on the phone with Verovio (see the drawn-notation spec).
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.12.0
+  flutter: ">=3.44.0"
+
+# Part of the root Dart pub workspace.
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  archive: ^4.0.7
+  ffi: ^2.1.4
+  path: ^1.9.1
+  path_provider: ^2.1.6
+  xml: ^6.5.0
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        ffiPlugin: true
