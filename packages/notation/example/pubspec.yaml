@@ -21,6 +21,7 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
+  xml: ^6.5.0
 
 flutter:
   uses-material-design: true
