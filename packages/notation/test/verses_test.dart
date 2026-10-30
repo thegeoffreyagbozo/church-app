@@ -62,4 +62,31 @@ void main() {
       expect(lyrics.map((l) => l.getAttribute('number')).toSet(), {'1'});
     },
   );
+
+  group('a refrain written once, as verse 1', () {
+    // Bar 1 has words for verses 1 to 3; bar 2, the refrain, only for verse 1.
+    const hymn =
+        '<score-partwise><part>'
+        '<measure number="1"><note>'
+        '<lyric number="1"><text>One</text></lyric>'
+        '<lyric number="2"><text>Two</text></lyric>'
+        '<lyric number="3"><text>Three</text></lyric>'
+        '</note></measure>'
+        '<measure number="2"><note>'
+        '<lyric number="1"><text>Glory</text></lyric>'
+        '</note></measure>'
+        '</part></score-partwise>';
+
+    test('is sung after every verse', () {
+      expect(_words(keepVerse(hymn, 3)), ['Three', 'Glory']);
+    });
+
+    test('is not borrowed in a bar the verse has its own words for', () {
+      expect(_words(keepVerse(hymn, 2)), ['Two', 'Glory']);
+    });
+
+    test('is not added for a verse the hymn does not have', () {
+      expect(_words(keepVerse(hymn, 9)), isEmpty);
+    });
+  });
 }
