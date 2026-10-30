@@ -16,11 +16,11 @@ void main() {
     expect(engine.verovioVersion, startsWith('6.3.0'));
   });
 
-  test('draws every note of the four parts on one page', () async {
+  test('draws every note of the four parts', () async {
     final pages = await engine.render(oldHundredth(), width: 400, verse: 1);
 
     expect(pages, hasLength(1));
-    expect(RegExp(r'class="note"').allMatches(pages.single), hasLength(32));
+    expect(RegExp(r'class="note"').allMatches(pages.single), hasLength(64));
   });
 
   test('broken MusicXML throws, and the next drawing still works', () async {
@@ -67,8 +67,8 @@ void main() {
         .map((g) => g.findElements('use').first.getAttribute('fill-opacity'))
         .toList();
 
-    expect(heads.where((o) => o == '$fadedOpacity'), hasLength(24)); // S, T, B
-    expect(heads.where((o) => o == null), hasLength(8)); // the alto
+    expect(heads.where((o) => o == '$fadedOpacity'), hasLength(48)); // S, T, B
+    expect(heads.where((o) => o == null), hasLength(16)); // the alto
   });
 
   test('the words stay in full ink when the soprano is faded', () async {
@@ -154,7 +154,14 @@ void main() {
 
       expect(barlines, isNotEmpty);
       for (final barline in barlines) {
-        expect(barline.findElements('path'), hasLength(2)); // one per staff
+        // One piece per staff for each line (a final barline has two lines).
+        final xs = [
+          for (final path in barline.findElements('path'))
+            path.getAttribute('d')!.split(' ').first,
+        ];
+        for (final x in xs.toSet()) {
+          expect(xs.where((other) => other == x), hasLength(2));
+        }
       }
     },
   );
