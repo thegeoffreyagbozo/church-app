@@ -10,7 +10,8 @@ const maxScale = 120;
 /// units, which [scale] percent turns into pixels.
 String verovioOptions({required double width, required int scale}) {
   final s = scale.clamp(minScale, maxScale);
-  final pageWidth = (width * 100 / s).round().clamp(500, 60000);
+  // 100 is Verovio's own minimum; a higher floor would make big sizes overflow a phone.
+  final pageWidth = (width * 100 / s).round().clamp(100, 60000);
   return jsonEncode({
     'scale': s,
     'pageWidth': pageWidth,
