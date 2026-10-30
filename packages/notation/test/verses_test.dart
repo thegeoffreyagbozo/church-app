@@ -16,7 +16,10 @@ void main() {
   test('keeps only the chosen verse', () {
     final words = _words(keepVerse(oldHundredth(), 2));
 
-    expect(words, ['The', 'Lord', 'ye', 'know', 'is', 'God', 'in', 'deed']);
+    expect(words, [
+      ...['The', 'Lord', 'ye', 'know', 'is', 'God', 'in', 'deed'],
+      ...['With', 'out', 'our', 'aid', 'he', 'did', 'us', 'make'],
+    ]);
   });
 
   test('a lyric with no number counts as verse 1', () {
@@ -32,7 +35,12 @@ void main() {
     final xml = keepVerse(oldHundredth(), 9);
 
     expect(_words(xml), isEmpty);
-    expect(XmlDocument.parse(xml).findAllElements('note'), hasLength(32));
+    expect(
+      XmlDocument.parse(
+        xml,
+      ).findAllElements('note').where((n) => n.getElement('rest') == null),
+      hasLength(64),
+    );
   });
 
   test('a file with no words has no verses', () {
@@ -50,7 +58,7 @@ void main() {
         keepVerse(oldHundredth(), 4),
       ).findAllElements('lyric');
 
-      expect(lyrics, hasLength(8));
+      expect(lyrics, hasLength(16));
       expect(lyrics.map((l) => l.getAttribute('number')).toSet(), {'1'});
     },
   );
