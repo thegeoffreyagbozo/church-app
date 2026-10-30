@@ -165,4 +165,18 @@ void main() {
       }
     },
   );
+
+  test('the largest size draws no wider than a small phone', () async {
+    final pages = await engine.render(
+      oldHundredth(),
+      width: 328,
+      verse: 1,
+      scale: maxScale,
+    );
+    final width = XmlDocument.parse(
+      pages.first,
+    ).rootElement.getAttribute('width')!;
+
+    expect(double.parse(width.replaceAll('px', '')), lessThanOrEqualTo(328));
+  });
 }

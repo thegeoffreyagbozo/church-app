@@ -25,10 +25,18 @@ void main() {
   });
 
   test('a tiny or huge width still gives Verovio a page it accepts', () {
-    expect(_decode(verovioOptions(width: 1, scale: 40))['pageWidth'], 500);
+    expect(_decode(verovioOptions(width: 1, scale: 40))['pageWidth'], 100);
     expect(
       _decode(verovioOptions(width: 100000, scale: 20))['pageWidth'],
       60000,
     );
   });
+
+  test(
+    'the largest size still fits a phone: the page is never wider than asked',
+    () {
+      // A 360 px phone with padding leaves about 328 px; at scale 120 that is 273 units.
+      expect(_decode(verovioOptions(width: 328, scale: 120))['pageWidth'], 273);
+    },
+  );
 }
