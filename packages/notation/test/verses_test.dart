@@ -42,4 +42,16 @@ void main() {
   test('verse numbers start at 1', () {
     expect(() => keepVerse(oldHundredth(), 0), throwsArgumentError);
   });
+
+  test(
+    'the kept verse becomes verse 1, so it sits in the first row of words',
+    () {
+      final lyrics = XmlDocument.parse(
+        keepVerse(oldHundredth(), 4),
+      ).findAllElements('lyric');
+
+      expect(lyrics, hasLength(8));
+      expect(lyrics.map((l) => l.getAttribute('number')).toSet(), {'1'});
+    },
+  );
 }

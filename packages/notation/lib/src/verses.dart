@@ -13,12 +13,18 @@ int verseCount(String musicXml) {
   );
 }
 
-/// [musicXml] with only [verse]'s words left under the notes.
+/// [musicXml] with only [verse]'s words left under the notes, numbered as verse 1.
 String keepVerse(String musicXml, int verse) {
   if (verse < 1) throw ArgumentError.value(verse, 'verse', 'starts at 1');
   final document = XmlDocument.parse(musicXml);
   for (final lyric in document.findAllElements('lyric').toList()) {
-    if (_verseOf(lyric) != verse) lyric.remove();
+    if (_verseOf(lyric) != verse) {
+      lyric.remove();
+    } else {
+      // Verovio gives each verse number its own row; as verse 1 it sits right under the
+      // top staff instead of below empty rows.
+      lyric.setAttribute('number', '1');
+    }
   }
   return document.toXmlString();
 }
