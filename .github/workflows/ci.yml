@@ -34,6 +34,11 @@ jobs:
       - name: Test the hymn book database
         run: dart test
         working-directory: packages/content_db
+      # The device tests (real Verovio) run from packages/notation/example on a phone or
+      # emulator; these are the ones that need no device.
+      - name: Test the notation engine
+        run: flutter test
+        working-directory: packages/notation
 
   mobile:
     name: Flutter app (analyze, format, test)
