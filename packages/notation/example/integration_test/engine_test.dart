@@ -136,4 +136,26 @@ void main() {
       );
     },
   );
+
+  test(
+    'barlines stop at each staff, leaving the words between them clear',
+    () async {
+      final svg = (await engine.render(
+        oldHundredth(),
+        width: 400,
+        verse: 1,
+      )).single;
+      final barlines = XmlDocument.parse(svg)
+          .findAllElements('g')
+          .where(
+            (g) =>
+                (g.getAttribute('class') ?? '').split(' ').contains('barLine'),
+          );
+
+      expect(barlines, isNotEmpty);
+      for (final barline in barlines) {
+        expect(barline.findElements('path'), hasLength(2)); // one per staff
+      }
+    },
+  );
 }
