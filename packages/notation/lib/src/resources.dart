@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:archive/archive.dart';
 import 'package:flutter/services.dart';
@@ -20,16 +21,23 @@ Future<String> installResources(AssetBundle bundle, {Directory? into}) async {
     return folder.path;
   }
 
+  final data = await bundle.load(verovioAsset);
+  final zip = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+  final path = folder.path;
+  // About 1,900 small files: written on a background isolate so the screen keeps moving.
+  await Isolate.run(() => _unpack(zip, path));
+  return folder.path;
+}
+
+void _unpack(Uint8List zip, String path) {
+  final folder = Directory(path);
   if (folder.existsSync()) folder.deleteSync(recursive: true);
   folder.createSync(recursive: true);
-  final data = await bundle.load(verovioAsset);
-  final archive = ZipDecoder().decodeBytes(data.buffer.asUint8List());
-  for (final entry in archive) {
+  for (final entry in ZipDecoder().decodeBytes(zip)) {
     if (!entry.isFile) continue;
-    final file = File(p.join(folder.path, entry.name));
+    final file = File(p.join(path, entry.name));
     file.parent.createSync(recursive: true);
     file.writeAsBytesSync(entry.readBytes()!);
   }
-  File(p.join(folder.path, completeMarker)).writeAsStringSync('');
-  return folder.path;
+  File(p.join(path, completeMarker)).writeAsStringSync('');
 }
