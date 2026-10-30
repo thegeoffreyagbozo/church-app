@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:flutter/services.dart';
 import 'package:xml/xml.dart';
 
+import 'barlines.dart';
 import 'flatten.dart';
 import 'options.dart';
 import 'parts.dart';
@@ -36,7 +37,8 @@ class NotationEngine {
 
   /// One SVG per page for [musicXml] drawn [width] logical pixels wide at [scale], with
   /// [verse]'s words under the notes and, when [part] is given, the other voices faded,
-  /// reshaped so `flutter_svg` can draw it.
+  /// barlines broken between the staves so they don't cross the words, reshaped so
+  /// `flutter_svg` can draw it.
   Future<List<String>> render(
     String musicXml, {
     required double width,
@@ -65,7 +67,11 @@ class NotationEngine {
     final drawn = result as List<String>;
     final pages = [
       for (final page in drawn)
-        flattenForFlutter(part == null ? page : fadeOtherParts(page, part)),
+        flattenForFlutter(
+          breakBarlinesBetweenStaves(
+            part == null ? page : fadeOtherParts(page, part),
+          ),
+        ),
     ];
     _cache.put(key, pages);
     return pages;
