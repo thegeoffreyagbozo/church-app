@@ -179,4 +179,29 @@ void main() {
 
     expect(double.parse(width.replaceAll('px', '')), lessThanOrEqualTo(328));
   });
+
+  test('drawing after dispose fails at once instead of hanging', () async {
+    final stopped = await NotationEngine.start();
+    await stopped.dispose();
+
+    await expectLater(
+      stopped
+          .render(oldHundredth(), width: 400, verse: 1)
+          .timeout(const Duration(seconds: 5)),
+      throwsA(isA<NotationException>()),
+    );
+  });
+
+  test(
+    'an unexpected error comes back as a failed drawing, and the next one works',
+    () async {
+      await expectLater(
+        engine.render(oldHundredth(), width: 400, verse: 0),
+        throwsA(isA<NotationException>()),
+      );
+
+      final pages = await engine.render(oldHundredth(), width: 380, verse: 1);
+      expect(pages, isNotEmpty);
+    },
+  );
 }
