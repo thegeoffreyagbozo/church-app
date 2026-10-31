@@ -33,6 +33,24 @@ batch files don't have, or a missing part, stops the import. Each hymn soft-dele
 longer has. The images themselves are uploaded to the bucket separately (`supabase storage cp`);
 `test/fixtures/sample_music.tsv` is an example.
 
+## Notation
+
+`--notation <notation.tsv>` loads drawn music (ADR 0012): `section<TAB>number or title<TAB>file`,
+the file a compressed MusicXML (`.mxl`) beside the map. Each hymn gets one `hymn_assets` row of
+kind `musicxml` at `<hymn id>/notation.mxl` in the `sheet-music` bucket; re-importing replaces only
+notation rows, never the scanned music. The import prints the `supabase storage cp` command for
+each file: run them before building the hymn book.
+
+A notation file must be laid out so the app can tell the parts apart, or the import stops:
+
+- two staves; on the top staff soprano is the first voice and alto the second, on the bottom
+  staff tenor then bass (MuseScore numbers them 1, 2 and 5, 6);
+- the words on the soprano, one lyric number per verse, from 1 without gaps (a refrain written
+  once as verse 1 is sung after every verse);
+- no title or credits (the app shows them).
+
+Words that differ from the batch text are warnings, ignoring case, punctuation and hyphens.
+
 ## Format
 
 `test/fixtures/sample_book.txt` is a complete example. Lines starting with `#` are notes.

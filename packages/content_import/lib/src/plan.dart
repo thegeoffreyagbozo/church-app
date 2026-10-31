@@ -1,6 +1,7 @@
 import 'ids.dart';
 import 'model.dart';
 import 'music.dart';
+import 'notation.dart';
 import 'public_domain.dart';
 
 /// One row to insert or update: its table and its column values.
@@ -33,11 +34,22 @@ class Cleanup {
   final String? kind;
 }
 
+/// A file to copy into a bucket before the content build reads it.
+class Upload {
+  const Upload(this.file, this.bucket, this.path);
+  final String file;
+  final String bucket;
+  final String path;
+}
+
 /// Everything one import writes, in dependency order.
 class ImportPlan {
-  ImportPlan(this.rows, this.cleanups);
+  ImportPlan(this.rows, this.cleanups, {this.uploads = const []});
   final List<Row> rows;
   final List<Cleanup> cleanups;
+
+  /// Notation files to copy into the `sheet-music` bucket.
+  final List<Upload> uploads;
 
   Iterable<Row> rowsOf(String table) => rows.where((r) => r.table == table);
 }
@@ -65,7 +77,9 @@ String firstLineOf(String lyrics) {
 /// Row ids derive from natural keys (section and number, or kind and title), so importing
 /// a corrected batch again updates the same rows. Protected or unconfirmed content is left
 /// unpublished unless [publishAll]; drafts are never published. [music] adds sheet-music
-/// rows; then every hymn also cleans up pieces it no longer has.
+/// rows; then every hymn also cleans up pieces it no longer has. [notation] adds one
+/// `musicxml` row per hymn with a notation file; then every hymn also cleans up
+/// notation it no longer has.
 ImportPlan planImport(
   Book book, {
   required int currentYear,
@@ -73,9 +87,11 @@ ImportPlan planImport(
   String defaultSection = 'Hymns',
   String language = 'en',
   List<MusicPiece>? music,
+  List<NotationEntry>? notation,
 }) {
   final rows = <Row>[];
   final cleanups = <Cleanup>[];
+  final uploads = <Upload>[];
   String hymnalId(String section) => stableId('hymnal/$language/$section');
   String categoryId(String topic) =>
       stableId('category/${topic.toLowerCase()}');
@@ -223,6 +239,35 @@ ImportPlan planImport(
         ),
       );
     }
+    if (notation != null) {
+      final hymnKey = '${h.section}/${h.number ?? h.title!.toLowerCase()}';
+      final entry = notation.where((n) => n.hymnKey == hymnKey).firstOrNull;
+      if (entry != null) {
+        rows.add(
+          Row('hymn_assets', {
+            'id': stableId('$key/notation'),
+            'hymn_id': id,
+            'kind': 'musicxml',
+            'storage_bucket': 'sheet-music',
+            'storage_path': notationPath(id),
+            'page': null,
+            'mime': 'application/vnd.recordare.musicxml',
+            'sort_order': 0,
+          }),
+        );
+        uploads.add(Upload(entry.file, 'sheet-music', notationPath(id)));
+      }
+      cleanups.add(
+        Cleanup(
+          'hymn_assets',
+          'hymn_id',
+          id,
+          entry == null ? 0 : 1,
+          orderColumn: 'sort_order',
+          kind: 'musicxml',
+        ),
+      );
+    }
   }
 
   for (final (i, r) in book.readings.indexed) {
@@ -262,7 +307,7 @@ ImportPlan planImport(
     cleanups.add(Cleanup('reading_parts', 'reading_id', id, r.parts.length));
   }
 
-  return ImportPlan(rows, cleanups);
+  return ImportPlan(rows, cleanups, uploads: uploads);
 }
 
 /// A category key such as "jesus-our-savior-his-birth".

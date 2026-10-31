@@ -41,6 +41,11 @@ void main(List<String> args) {
       help: 'Music map (section, number or title, part, path, page) to load '
           'as sheet music.',
     )
+    ..addOption(
+      'notation',
+      help: 'Notation map (section, number or title, .mxl file beside the map) '
+          'to load as drawn music.',
+    )
     ..addFlag('help', abbr: 'h', negatable: false, help: 'Show this help.');
 
   final ArgResults options;
@@ -109,6 +114,35 @@ void main(List<String> args) {
     }
   }
 
+  List<NotationEntry>? notation;
+  final notationMap = options.option('notation');
+  if (notationMap != null) {
+    final file = File(notationMap);
+    if (!file.existsSync()) {
+      stderr.writeln('$notationMap: no such file');
+      exitCode = 66;
+      return;
+    }
+    final issues = <Issue>[];
+    notation = parseNotationMap(
+      Source(notationMap, file.readAsStringSync()),
+      file.parent.path,
+      issues,
+    );
+    issues.addAll(checkNotation(book, notation, file: notationMap));
+    for (final issue in issues) {
+      stderr.writeln(issue);
+    }
+    final errors = issues.where((i) => i.isError).length;
+    if (errors > 0) {
+      stderr.writeln(
+        '$errors notation error${errors == 1 ? '' : 's'}: nothing written.',
+      );
+      exitCode = 1;
+      return;
+    }
+  }
+
   final year = options.option('year');
   final plan = planImport(
     book,
@@ -117,6 +151,7 @@ void main(List<String> args) {
     defaultSection: defaultSection,
     language: options.option('language')!,
     music: music,
+    notation: notation,
   );
   final out = options.option('out');
   final sql = renderSql(plan);
@@ -136,8 +171,22 @@ void _summarize(Book book, ImportPlan plan, String? out) {
   ];
   stderr.writeln('${book.hymns.length} hymns (${perSection.join(', ')}), '
       '${book.readings.length} readings.');
-  final pieces = plan.rowsOf('hymn_assets').length;
+  final pieces = plan
+      .rowsOf('hymn_assets')
+      .where((r) => r.values['kind'] == 'sheet_music_image')
+      .length;
   if (pieces > 0) stderr.writeln('$pieces pieces of sheet music.');
+  if (plan.uploads.isNotEmpty) {
+    final n = plan.uploads.length;
+    stderr.writeln('Notation for $n hymn${n == 1 ? '' : 's'}. Upload before '
+        'building the hymn book:');
+    for (final u in plan.uploads) {
+      stderr.writeln(
+        '  supabase --experimental storage cp ${u.file} '
+        'ss:///${u.bucket}/${u.path}',
+      );
+    }
+  }
 
   final unpublished = <String>[];
   final drafts = <String>[];
