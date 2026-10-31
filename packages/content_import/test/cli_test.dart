@@ -68,4 +68,66 @@ How firm a foundation, ye saints of the Lord.
     expect(result.exitCode, 64);
     expect(result.stderr, contains('Usage:'));
   });
+
+  test('checks notation files and says what to upload', () async {
+    final batch = File('${dir.path}/batch.txt')..writeAsStringSync('''
+SECTION Hymns
+HYMN 8
+Title: All People
+
+1
+All people
+''');
+    File('${dir.path}/008.mxl').writeAsStringSync(
+      '<score-partwise><part id="P1"><measure number="1">'
+      '<attributes><staves>2</staves></attributes>'
+      '<note><voice>1</voice><staff>1</staff><lyric number="1"><text>All</text></lyric></note>'
+      '<note><voice>1</voice><staff>1</staff><lyric number="1"><text>people</text></lyric></note>'
+      '<note><voice>2</voice><staff>1</staff></note>'
+      '<note><voice>5</voice><staff>2</staff></note>'
+      '<note><voice>6</voice><staff>2</staff></note>'
+      '</measure></part></score-partwise>',
+    );
+    final map = File('${dir.path}/notation.tsv')
+      ..writeAsStringSync('Hymns\t8\t008.mxl\n');
+    final out = File('${dir.path}/import.sql');
+
+    final result = await importer([
+      batch.path,
+      '--notation',
+      map.path,
+      '--out',
+      out.path,
+      '--year',
+      '2026',
+    ]);
+
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    expect(out.readAsStringSync(), contains("'musicxml'"));
+    expect(result.stderr, contains('Notation for 1 hymn'));
+    expect(result.stderr, contains('${dir.path}/008.mxl'));
+    expect(result.stderr, contains('ss:///sheet-music/'));
+  });
+
+  test('a notation file that breaks the layout writes nothing', () async {
+    final batch = File('${dir.path}/batch.txt')
+      ..writeAsStringSync(
+        'SECTION Hymns\nHYMN 8\nTitle: All People\n\n1\nAll\n',
+      );
+    File('${dir.path}/008.mxl').writeAsStringSync(
+      '<score-partwise><part id="P1"><measure number="1"><note/></measure>'
+      '</part></score-partwise>',
+    );
+    final map = File('${dir.path}/notation.tsv')
+      ..writeAsStringSync('Hymns\t8\t008.mxl\n');
+    final out = File('${dir.path}/import.sql');
+
+    final result = await importer(
+      [batch.path, '--notation', map.path, '--out', out.path],
+    );
+
+    expect(result.exitCode, 1);
+    expect(out.existsSync(), isFalse);
+    expect(result.stderr, contains('not 2 staves'));
+  });
 }

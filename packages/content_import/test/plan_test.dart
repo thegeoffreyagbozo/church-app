@@ -276,4 +276,46 @@ Ref: I Timothy 1:17
       ],
     );
   });
+
+  group('notation', () {
+    Book book() => parseSources(
+          [
+            const Source(
+              'b.txt',
+              'SECTION Hymns\nHYMN 8\nTitle: All People\n\n1\nAll people\n',
+            ),
+          ],
+          defaultSection: 'Hymns',
+        );
+
+    test('a hymn with notation gets one musicxml asset row and an upload', () {
+      final plan = planImport(
+        book(),
+        currentYear: 2026,
+        notation: [const NotationEntry('Hymns', '8', '/n/008.mxl', 1)],
+      );
+      final hymnId = plan.rowsOf('hymns').single.values['id']! as String;
+      final row = plan.rowsOf('hymn_assets').single.values;
+      expect(row['kind'], 'musicxml');
+      expect(row['storage_path'], '$hymnId/notation.mxl');
+      expect(row['hymn_id'], hymnId);
+      expect(plan.uploads.single.file, '/n/008.mxl');
+      expect(plan.uploads.single.path, '$hymnId/notation.mxl');
+    });
+
+    test('re-importing cleans up only notation, never the scanned music', () {
+      final plan = planImport(book(), currentYear: 2026, notation: const []);
+      final cleanup =
+          plan.cleanups.singleWhere((c) => c.table == 'hymn_assets');
+      expect(cleanup.kind, 'musicxml');
+      expect(cleanup.keep, 0);
+    });
+
+    test('without a notation map nothing about notation is written', () {
+      final plan = planImport(book(), currentYear: 2026);
+      expect(plan.rowsOf('hymn_assets'), isEmpty);
+      expect(plan.cleanups.where((c) => c.table == 'hymn_assets'), isEmpty);
+      expect(plan.uploads, isEmpty);
+    });
+  });
 }
