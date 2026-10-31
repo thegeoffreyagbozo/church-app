@@ -125,7 +125,9 @@ Future<void> main(List<String> arguments) async {
   ).listSync().whereType<File>().fold<int>(0, (sum, f) => sum + f.lengthSync());
   stdout.writeln(
     'Music: ${summary.music} pieces, '
-    '${(bytes / 1e6).toStringAsFixed(1)} MB.',
+    '${(bytes / 1e6).toStringAsFixed(1)} MB. '
+    'Notation: ${summary.notation} '
+    'hymn${summary.notation == 1 ? '' : 's'}.',
   );
   if (summary.skipped > 0) {
     stdout.writeln(

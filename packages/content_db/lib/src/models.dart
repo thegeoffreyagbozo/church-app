@@ -137,6 +137,7 @@ class HymnDetail {
     this.topic,
     this.group,
     this.music = const [],
+    this.notationVerses = 0,
   });
 
   final String id;
@@ -161,6 +162,9 @@ class HymnDetail {
 
   /// Its printed music, piece by piece; empty when the app has none.
   final List<HymnMusicPart> music;
+
+  /// How many verses its drawn notation has; 0 when it has none (ADR 0012).
+  final int notationVerses;
 
   /// Whether the words may be shared (copyright expired or waived).
   final bool isPublicDomain;

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -34,3 +35,19 @@ const sampleMusicSizes = {
   'music-41-2': ImageSize(1200, 500),
   'music-doxology-1': ImageSize(1200, 700),
 };
+
+/// The sample with a notation file listed for [hymnId] at `<hymnId>/notation.mxl`.
+ContentSnapshot sampleWithNotation(String hymnId) {
+  final json =
+      jsonDecode(File('test/fixtures/sample_content.json').readAsStringSync())
+          as Map<String, Object?>;
+  (json['hymn_assets']! as List<Object?>).add({
+    'id': 'notation-$hymnId',
+    'hymn_id': hymnId,
+    'kind': 'musicxml',
+    'storage_bucket': 'sheet-music',
+    'storage_path': '$hymnId/notation.mxl',
+    'sort_order': 0,
+  });
+  return ContentSnapshot.parse(jsonEncode(json));
+}

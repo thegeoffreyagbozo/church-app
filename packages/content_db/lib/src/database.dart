@@ -14,6 +14,7 @@ part 'database.g.dart';
     Hymns,
     HymnSections,
     HymnMusic,
+    HymnNotation,
     Readings,
     ReadingParts,
     Church,
@@ -26,7 +27,7 @@ class ContentDatabase extends _$ContentDatabase {
   ContentDatabase(super.executor);
 
   /// Stamped into every built file. Bump it with a migration when a table changes.
-  static const version = 4;
+  static const version = 5;
 
   @override
   int get schemaVersion => version;

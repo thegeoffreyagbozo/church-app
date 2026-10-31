@@ -101,6 +101,11 @@ class ContentCatalog {
     return row?.id;
   }
 
+  /// [hymnId]'s notation file (compressed MusicXML), or null when it has none.
+  Future<Uint8List?> notation(String hymnId) async => (await (_db.select(
+    _db.hymnNotation,
+  )..where((n) => n.hymnId.equals(hymnId))).getSingleOrNull())?.mxl;
+
   Future<HymnDetail?> hymn(String id) async {
     final row = await (_db.select(
       _db.hymns,
@@ -124,6 +129,9 @@ class ContentCatalog {
               ..where((m) => m.hymnId.equals(id))
               ..orderBy([(m) => OrderingTerm(expression: m.position)]))
             .get();
+    final notation = await (_db.select(
+      _db.hymnNotation,
+    )..where((n) => n.hymnId.equals(id))).getSingleOrNull();
     final home = await defaultSection();
     return HymnDetail(
       id: row.id,
@@ -143,6 +151,7 @@ class ContentCatalog {
         for (final m in music)
           HymnMusicPart(id: m.id, width: m.width, height: m.height),
       ],
+      notationVerses: notation?.verses ?? 0,
       isPublicDomain: row.isPublicDomain,
       texts: [
         for (final t in texts)

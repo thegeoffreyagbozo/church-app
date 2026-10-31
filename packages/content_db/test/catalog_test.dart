@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:content_db/content_db.dart';
+import 'package:drift/native.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:shared/shared.dart';
 import 'package:test/test.dart';
@@ -184,6 +188,27 @@ void main() {
       expect(recent.first.section!.name, 'Supplementary Hymns');
       expect(recent[1].readingKind, ReadingKind.benediction);
       expect(recent[1].preview, startsWith('The Lord bless thee'));
+    },
+  );
+
+  test(
+    'a hymn tells how many verses its notation has, and hands over the file',
+    () async {
+      final withNotation = ContentDatabase(NativeDatabase.memory());
+      addTearDown(withNotation.close);
+      await importSnapshot(
+        withNotation,
+        sampleWithNotation('hymn-1'),
+        notation: {
+          'hymn-1': BundledNotation(Uint8List.fromList(utf8.encode('<x/>')), 3),
+        },
+      );
+      final catalog = ContentCatalog(withNotation);
+
+      expect((await catalog.hymn('hymn-1'))!.notationVerses, 3);
+      expect(utf8.decode((await catalog.notation('hymn-1'))!), '<x/>');
+      expect((await catalog.hymn('hymn-41'))!.notationVerses, 0);
+      expect(await catalog.notation('hymn-41'), isNull);
     },
   );
 }
