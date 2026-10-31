@@ -19,6 +19,7 @@ import '../domain/hymn_layout.dart';
 import 'hymn_text_block.dart';
 import 'music_card.dart';
 import 'music_pages.dart';
+import 'notation_view.dart';
 import 'view_switch.dart';
 
 /// One hymn: every verse on one page, the chorus after each (spec section 3.3).
@@ -54,17 +55,18 @@ class _Hymn extends ConsumerWidget {
     final music =
         ref.watch(readingSettingsProvider.select((s) => s.hymnView)) ==
         HymnViewMode.chorister;
-    final showMusic = music && hymn.music.isNotEmpty;
+    final notation = music && hymn.notationVerses > 0;
+    final showMusic = music && !notation && hymn.music.isNotEmpty;
     final label = itemLabel(
       hymnName(l10n, hymn.section, hymn.number),
       hymn.title,
     );
-    return ItemPage(
+    final page = ItemPage(
       kicker: hymnKicker(l10n, hymn.section, group: hymn.group),
       number: hymn.number,
       title: hymn.title,
       subtitle: creditsLine(hymn.author, hymn.composer),
-      resizable: !showMusic,
+      resizable: !(notation || showMusic),
       actions: [
         const ViewSwitch(),
         const SizedBox(width: 6),
@@ -80,7 +82,9 @@ class _Hymn extends ConsumerWidget {
       ],
       children: [
         if (music) MusicCard(hymn),
-        if (showMusic) ...[
+        if (notation)
+          NotationView(hymn, key: ValueKey(hymn.id))
+        else if (showMusic) ...[
           MusicPages(hymn, onTap: () => context.push(hymnMusicPath(hymn.id))),
           Text(
             l10n.tapToZoom,
@@ -92,5 +96,8 @@ class _Hymn extends ConsumerWidget {
             HymnTextBlock(text),
       ],
     );
+    return hymn.notationVerses > 0
+        ? NotationPrefetch(hymn: hymn, child: page)
+        : page;
   }
 }

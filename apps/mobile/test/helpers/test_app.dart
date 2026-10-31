@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -6,6 +8,7 @@ import 'package:church_app/core/database/content_providers.dart';
 import 'package:church_app/core/platform/platform_services.dart';
 import 'package:church_app/core/router/app_router.dart';
 import 'package:church_app/features/hymnal/data/hymnal_providers.dart';
+import 'package:church_app/features/hymnal/data/notation_drawer.dart';
 import 'package:church_app/features/settings/domain/reading_settings.dart';
 import 'package:church_app/features/settings/presentation/settings_controller.dart';
 import 'package:content_db/content_db.dart';
@@ -15,20 +18,47 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
+import 'package:notation/notation.dart';
+import 'package:notation/testing.dart';
 
-/// An in-memory hymn book holding content_db's public-domain sample.
-Future<ContentDatabase> sampleDatabase() async {
+/// content_db's public-domain sample, as the Supabase API returns it.
+String sampleContentJson() => File(
+  '../../packages/content_db/test/fixtures/sample_content.json',
+).readAsStringSync();
+
+/// An in-memory hymn book holding content_db's public-domain sample. The hymns in
+/// [notationOn] get drawn notation (the Old Hundredth fixture) with [verses] verses.
+Future<ContentDatabase> sampleDatabase({
+  Set<String> notationOn = const {'hymn-1'},
+  int verses = 4,
+}) async {
   final db = ContentDatabase(NativeDatabase.memory());
-  final json = File(
-    '../../packages/content_db/test/fixtures/sample_content.json',
-  ).readAsStringSync();
+  final json = jsonDecode(sampleContentJson()) as Map<String, Object?>;
+  final assets = json['hymn_assets']! as List<Object?>;
+  for (final id in notationOn) {
+    assets.add({
+      'id': 'notation-$id',
+      'hymn_id': id,
+      'kind': 'musicxml',
+      'storage_bucket': 'sheet-music',
+      'storage_path': '$id/notation.mxl',
+      'sort_order': 0,
+    });
+  }
   await importSnapshot(
     db,
-    ContentSnapshot.parse(json),
+    ContentSnapshot.parse(jsonEncode(json)),
     musicSizes: const {
       'music-41-1': ImageSize(1200, 900),
       'music-41-2': ImageSize(1200, 500),
       'music-doxology-1': ImageSize(1200, 700),
+    },
+    notation: {
+      for (final id in notationOn)
+        id: BundledNotation(
+          Uint8List.fromList(utf8.encode(oldHundredth())),
+          verses,
+        ),
     },
   );
   await rebuildSearchIndex(db);
@@ -88,6 +118,39 @@ class FakeLauncher extends Launcher {
   }
 }
 
+/// Draws nothing: returns a fixed SVG (two staff lines) or fails, and records requests.
+class FakeNotationDrawer implements NotationDrawer {
+  FakeNotationDrawer({this.fail = false});
+
+  bool fail;
+  final requests = <({int verse, HymnPart part, int scale, double width})>[];
+
+  /// When set, drawings wait for it, so a test can see the in-between state.
+  Completer<void>? hold;
+
+  static const svg =
+      '<svg width="300px" height="80px" xmlns="http://www.w3.org/2000/svg">'
+      '<rect x="0" y="20" width="300" height="2"/>'
+      '<rect x="0" y="60" width="300" height="2"/></svg>';
+
+  @override
+  void warmUp() {}
+
+  @override
+  Future<List<String>> draw(
+    String musicXml, {
+    required double width,
+    required int verse,
+    required HymnPart part,
+    required int scale,
+  }) async {
+    requests.add((verse: verse, part: part, scale: scale, width: width));
+    await hold?.future;
+    if (fail) throw const NotationException('fake failure');
+    return [svg];
+  }
+}
+
 /// Fakes for the plugins, shared by every widget test.
 class TestPlatform {
   final screen = FakeScreenAwake();
@@ -104,6 +167,7 @@ Future<TestPlatform> pumpApp(
   TestPlatform? platform,
   List<Override> overrides = const [],
   ImageProvider Function(String id)? musicImage,
+  NotationDrawer? notation,
 }) async {
   final fakes = platform ?? TestPlatform();
   await tester.pumpWidget(
@@ -120,6 +184,9 @@ Future<TestPlatform> pumpApp(
         launcherProvider.overrideWithValue(fakes.launcher),
         musicImageProvider.overrideWithValue(
           musicImage ?? (_) => MemoryImage(testMusicPng),
+        ),
+        notationDrawerProvider.overrideWithValue(
+          notation ?? FakeNotationDrawer(),
         ),
         ...overrides,
       ],

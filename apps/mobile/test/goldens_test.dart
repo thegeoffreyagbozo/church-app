@@ -75,6 +75,23 @@ void main() {
     });
   }
 
+  for (final theme in [ReadingTheme.paper, ReadingTheme.night]) {
+    final name = 'hymn_${theme.name}_notation_1x';
+    testWidgets(name, (tester) async {
+      phone(tester);
+      await pumpApp(
+        tester,
+        db,
+        location: '/hymn/hymn-1',
+        settings: ReadingSettings(
+          theme: theme,
+          hymnView: HymnViewMode.chorister,
+        ),
+      );
+      await snap(name);
+    });
+  }
+
   for (final (theme, size) in [
     (ReadingTheme.paper, 1.0),
     (ReadingTheme.paper, 2.0),

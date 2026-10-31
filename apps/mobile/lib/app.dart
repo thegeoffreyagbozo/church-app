@@ -5,17 +5,32 @@ import 'core/config/church_config.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/hymnal_theme.dart';
 import 'core/theme/palette.dart';
+import 'features/hymnal/data/notation_drawer.dart';
 import 'features/settings/domain/reading_settings.dart';
 import 'features/settings/presentation/settings_controller.dart';
 import 'l10n/app_localizations.dart';
 
 /// The app once the hymn book is open: themes from the church's colours and the
 /// reader's settings, English strings, and the router.
-class HymnalApp extends ConsumerWidget {
+class HymnalApp extends ConsumerStatefulWidget {
   const HymnalApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HymnalApp> createState() => _HymnalAppState();
+}
+
+class _HymnalAppState extends ConsumerState<HymnalApp> {
+  @override
+  void initState() {
+    super.initState();
+    // Start Verovio in the background, so the first hymn with notation draws sooner.
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => ref.read(notationDrawerProvider).warmUp(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final config = ref.watch(churchConfigProvider);
     final settings = ref.watch(readingSettingsProvider);
     return MaterialApp.router(

@@ -37,7 +37,7 @@ class MusicCard extends StatelessWidget {
           const SizedBox(height: 6),
           if (rows.isEmpty && hymn.alsoSungTo.isEmpty)
             Text(l10n.noMusicDetails, style: theme.text.caption),
-          if (hymn.music.isEmpty)
+          if (hymn.music.isEmpty && hymn.notationVerses == 0)
             Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Text(l10n.noPrintedMusic, style: theme.text.caption),
