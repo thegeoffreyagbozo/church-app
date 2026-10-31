@@ -8,10 +8,10 @@ import 'barlines.dart';
 import 'flatten.dart';
 import 'options.dart';
 import 'parts.dart';
+import 'raw_drawings.dart';
 import 'render_cache.dart';
 import 'resources.dart';
 import 'verovio.dart';
-import 'verses.dart';
 
 /// Draws MusicXML with Verovio on one long-lived background isolate, which owns the only
 /// toolkit (a toolkit must stay on one thread) and does all the XML work, so the screen
@@ -141,6 +141,7 @@ void _serve((SendPort, String) start) {
   }
   final requests = ReceivePort();
   inbox.send((requests.sendPort, verovio.version));
+  final raw = RawDrawings(verovio.render);
   requests.listen((message) {
     if (message == null) {
       verovio.dispose();
@@ -150,7 +151,7 @@ void _serve((SendPort, String) start) {
     final (id, musicXml, verse, part, options) =
         message as (int, String, int, Part?, String);
     try {
-      inbox.send((id, _draw(verovio, musicXml, verse, part, options)));
+      inbox.send((id, _draw(raw, musicXml, verse, part, options)));
     } on NotationException catch (e) {
       inbox.send((id, e));
     } on XmlException catch (e) {
@@ -163,13 +164,13 @@ void _serve((SendPort, String) start) {
 }
 
 List<String> _draw(
-  Verovio verovio,
+  RawDrawings raw,
   String musicXml,
   int verse,
   Part? part,
   String options,
 ) => [
-  for (final page in verovio.render(keepVerse(musicXml, verse), options))
+  for (final page in raw.draw(musicXml, verse, options))
     flattenForFlutter(
       breakBarlinesBetweenStaves(
         part == null ? page : fadeOtherParts(page, part),
