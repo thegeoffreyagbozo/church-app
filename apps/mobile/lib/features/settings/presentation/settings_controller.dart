@@ -40,6 +40,8 @@ class ReadingSettingsController extends Notifier<ReadingSettings> {
 
   void setHymnView(HymnViewMode view) => _save(state.copyWith(hymnView: view));
 
+  void setHymnPart(HymnPart part) => _save(state.copyWith(hymnPart: part));
+
   void _save(ReadingSettings next) {
     state = next;
     _persist(next);
