@@ -50,7 +50,9 @@ class _NotationViewState extends ConsumerState<NotationView> {
       )),
     );
     if (drawing case AsyncData(:final value)) _last = value;
-    if (drawing case AsyncError(:final error) when _last == null) {
+    if (drawing case AsyncError(:final error)) {
+      // Never leave an earlier drawing up: it could show another verse's words.
+      _last = null;
       debugPrint('Notation of ${hymn.id} could not be drawn: $error');
       return hymn.music.isEmpty
           ? const SizedBox.shrink()
@@ -156,12 +158,10 @@ class _NotationPrefetchState extends ConsumerState<NotationPrefetch> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _prefetch());
   }
 
+  /// Draws the verses one after another, so a drawing the screen asks for waits
+  /// behind at most one of them, and stops once the page is closed.
   Future<void> _prefetch() async {
-    if (!mounted) return;
     final hymn = widget.hymn;
-    final settings = ref.read(readingSettingsProvider);
-    final width = itemContentWidth(context);
-    final drawer = ref.read(notationDrawerProvider);
     final String? musicXml;
     try {
       musicXml = await ref.read(hymnNotationProvider(hymn.id).future);
@@ -170,15 +170,21 @@ class _NotationPrefetchState extends ConsumerState<NotationPrefetch> {
     }
     if (musicXml == null) return;
     for (var v = 1; v <= hymn.notationVerses; v++) {
-      drawer
-          .draw(
-            musicXml,
-            width: width,
-            verse: v,
-            part: settings.hymnPart,
-            scale: notationScale(settings.textScale),
-          )
-          .ignore();
+      if (!mounted) return;
+      final settings = ref.read(readingSettingsProvider);
+      try {
+        await ref
+            .read(notationDrawerProvider)
+            .draw(
+              musicXml,
+              width: itemContentWidth(context),
+              verse: v,
+              part: settings.hymnPart,
+              scale: notationScale(settings.textScale),
+            );
+      } on Object {
+        return; // the Music view reports it and falls back
+      }
     }
   }
 

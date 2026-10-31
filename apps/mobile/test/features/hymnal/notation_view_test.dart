@@ -169,4 +169,44 @@ void main() {
       findsNothing,
     );
   });
+
+  testWidgets(
+    'a drawing that fails after an earlier one worked never leaves the old one up',
+    (tester) async {
+      useTallScreen(tester);
+      await db.close();
+      db = await sampleDatabase(notationOn: {'hymn-41'});
+      final drawer = FakeNotationDrawer();
+      await pumpApp(
+        tester,
+        db,
+        location: '/hymn/hymn-41',
+        settings: _music,
+        notation: drawer,
+      );
+      expect(find.byType(SvgPicture), findsOneWidget);
+
+      drawer.fail = true;
+      await tester.tap(find.widgetWithText(ChoiceChip, '3'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SvgPicture), findsNothing);
+      expect(find.byType(Image), findsWidgets); // the scanned music instead
+    },
+  );
+
+  testWidgets(
+    'drawing ahead goes one verse at a time, so the screen never waits '
+    'behind a queue',
+    (tester) async {
+      final drawer = FakeNotationDrawer()..hold = Completer<void>();
+      await pumpApp(tester, db, location: '/hymn/hymn-1', notation: drawer);
+
+      expect(drawer.requests, hasLength(1));
+
+      drawer.hold!.complete();
+      await tester.pumpAndSettle();
+      expect(drawer.requests.map((r) => r.verse).toList(), [1, 2, 3, 4]);
+    },
+  );
 }
