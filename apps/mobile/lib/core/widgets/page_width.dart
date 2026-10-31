@@ -14,3 +14,9 @@ double sidePadding(
 /// edge.
 double listBottomPadding(BuildContext context) =>
     24 + MediaQuery.paddingOf(context).bottom;
+
+/// The width of an item page's content (hymns and readings): the screen less
+/// [sidePadding] at its item-page minimum on each side. The Music view draws notation
+/// this wide, and drawing ahead uses the same width so its results are reused.
+double itemContentWidth(BuildContext context) =>
+    MediaQuery.sizeOf(context).width - 2 * sidePadding(context, min: 22);

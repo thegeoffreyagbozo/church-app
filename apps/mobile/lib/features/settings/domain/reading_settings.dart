@@ -1,8 +1,26 @@
 import 'package:flutter/foundation.dart';
+import 'package:notation/notation.dart';
 import 'package:shared/shared.dart';
 
 /// Paper, Night, or Auto (follow the phone).
 enum ReadingTheme { paper, night, auto }
+
+/// The voice a chorister reads in the Music view's notation; All fades nothing.
+enum HymnPart {
+  all(null),
+  soprano(Part.soprano),
+  alto(Part.alto),
+  tenor(Part.tenor),
+  bass(Part.bass);
+
+  const HymnPart(this.notationPart);
+
+  /// The voice the drawing keeps in full ink, or null for All.
+  final Part? notationPart;
+}
+
+/// Verovio's scale for the reader's text size: 40 at 1.0, growing with it.
+int notationScale(double textScale) => (defaultScale * textScale).round();
 
 /// How hymns and readings are shown; saved on the phone (spec section 3.7).
 @immutable
@@ -14,6 +32,7 @@ class ReadingSettings {
     this.keepScreenOn = true,
     this.digitRow = true,
     this.hymnView = HymnViewMode.ordinary,
+    this.hymnPart = HymnPart.all,
   });
 
   /// Reads the saved values, falling back to the defaults for anything missing or
@@ -35,6 +54,8 @@ class ReadingSettings {
       digitRow: flag(_digitRow, defaults.digitRow),
       hymnView:
           HymnViewMode.values.asNameMap()[map[_hymnView]] ?? defaults.hymnView,
+      hymnPart:
+          HymnPart.values.asNameMap()[map[_hymnPart]] ?? defaults.hymnPart,
     );
   }
 
@@ -50,6 +71,7 @@ class ReadingSettings {
   static const _keepScreenOn = 'keep_screen_on';
   static const _digitRow = 'digit_row';
   static const _hymnView = 'hymn_view';
+  static const _hymnPart = 'hymn_part';
 
   /// The reader's own text size, multiplied with the phone's (0.5 to 2.0).
   final double textScale;
@@ -63,6 +85,9 @@ class ReadingSettings {
   /// Words or Music on hymn pages.
   final HymnViewMode hymnView;
 
+  /// The part picked in the Music view's notation, the same for every hymn.
+  final HymnPart hymnPart;
+
   Map<String, String> toMap() => {
     _textScale: textScale.toStringAsFixed(2),
     _theme: theme.name,
@@ -70,6 +95,7 @@ class ReadingSettings {
     _keepScreenOn: '$keepScreenOn',
     _digitRow: '$digitRow',
     _hymnView: hymnView.name,
+    _hymnPart: hymnPart.name,
   };
 
   ReadingSettings copyWith({
@@ -79,6 +105,7 @@ class ReadingSettings {
     bool? keepScreenOn,
     bool? digitRow,
     HymnViewMode? hymnView,
+    HymnPart? hymnPart,
   }) => ReadingSettings(
     textScale: textScale ?? this.textScale,
     theme: theme ?? this.theme,
@@ -86,6 +113,7 @@ class ReadingSettings {
     keepScreenOn: keepScreenOn ?? this.keepScreenOn,
     digitRow: digitRow ?? this.digitRow,
     hymnView: hymnView ?? this.hymnView,
+    hymnPart: hymnPart ?? this.hymnPart,
   );
 
   @override
@@ -96,7 +124,8 @@ class ReadingSettings {
       other.legibleType == legibleType &&
       other.keepScreenOn == keepScreenOn &&
       other.digitRow == digitRow &&
-      other.hymnView == hymnView;
+      other.hymnView == hymnView &&
+      other.hymnPart == hymnPart;
 
   @override
   int get hashCode => Object.hash(
@@ -106,5 +135,6 @@ class ReadingSettings {
     keepScreenOn,
     digitRow,
     hymnView,
+    hymnPart,
   );
 }
