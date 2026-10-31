@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:notation/notation.dart';
 import 'package:notation/testing.dart';
 
 void main() => runApp(const ViewerApp());
 
-/// Shows the fixture as the Music view will: verse chips, a part picker, Paper or Night,
-/// and a size slider. For the owner's readability check in the go/no-go.
+/// Shows a hymn as the Music view will: verse chips, a part picker, Paper or Night, and a
+/// size slider. The menu holds the Old Hundredth fixture and any `.musicxml` file in the
+/// git-ignored `local/` folder. For the owner's readability checks.
 class ViewerApp extends StatefulWidget {
   const ViewerApp({super.key});
 
@@ -15,12 +17,28 @@ class ViewerApp extends StatefulWidget {
 }
 
 class _ViewerAppState extends State<ViewerApp> {
-  final _hymn = oldHundredth();
   late final Future<NotationEngine> _engine = NotationEngine.start();
+  late final Future<Map<String, String>> _hymns = _loadHymns();
+  var _title = fixtureTitle;
+  var _hymn = oldHundredth();
   var _verse = 1;
   Part? _part;
   var _night = false;
   var _scale = defaultScale.toDouble();
+
+  static const fixtureTitle = 'Old Hundredth (fixture)';
+
+  static Future<Map<String, String>> _loadHymns() async {
+    final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+    return {
+      fixtureTitle: oldHundredth(),
+      for (final asset in manifest.listAssets())
+        if (asset.startsWith('local/') && asset.endsWith('.musicxml'))
+          asset.substring(6, asset.length - 9): await rootBundle.loadString(
+            asset,
+          ),
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +49,23 @@ class _ViewerAppState extends State<ViewerApp> {
       home: Scaffold(
         backgroundColor: paper,
         appBar: AppBar(
-          title: const Text('Old Hundredth'),
+          title: FutureBuilder<Map<String, String>>(
+            future: _hymns,
+            builder: (context, snapshot) => DropdownButton<String>(
+              value: _title,
+              underline: const SizedBox(),
+              isExpanded: true,
+              items: [
+                for (final title in snapshot.data?.keys ?? [fixtureTitle])
+                  DropdownMenuItem(value: title, child: Text(title)),
+              ],
+              onChanged: (title) => setState(() {
+                _title = title!;
+                _hymn = snapshot.data![title]!;
+                _verse = 1;
+              }),
+            ),
+          ),
           actions: [
             IconButton(
               icon: Icon(_night ? Icons.light_mode : Icons.dark_mode),
