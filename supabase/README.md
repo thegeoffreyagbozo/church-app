@@ -17,6 +17,8 @@ migrations/
   0004_readings.sql      readings + reading_parts (responsive readings, creeds, covenants)
   0005_church_tagline.sql
                          church.tagline: the line under the church's name on Home
+  0006_notation_assets.sql
+                         hymn_assets.kind accepts musicxml (drawn notation, ADR 0012)
 seed.sql                 sample public-domain hymns and readings (dev/CI)
 functions/
   health/                public keepalive endpoint (DB touch) — pinged by CI daily
