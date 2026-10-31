@@ -87,6 +87,18 @@ class HymnMusic extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+/// A hymn's notation file (compressed MusicXML), drawn by the app in the Music view
+/// (ADR 0012), with how many verses its words have.
+@DataClassName('HymnNotationRow')
+class HymnNotation extends Table {
+  TextColumn get hymnId => text().references(Hymns, #id)();
+  BlobColumn get mxl => blob()();
+  IntColumn get verses => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {hymnId};
+}
+
 /// A responsive reading, collection, creed or covenant (ADR 0008).
 @DataClassName('ReadingRow')
 class Readings extends Table {

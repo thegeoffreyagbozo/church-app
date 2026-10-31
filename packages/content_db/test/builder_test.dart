@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:content_db/content_db.dart';
@@ -128,5 +129,87 @@ void main() {
       ),
       throwsA(isA<MusicFileException>()),
     );
+  });
+
+  group('notation', () {
+    const score =
+        '<score-partwise><part id="P1"><measure number="1">'
+        '<attributes><staves>2</staves></attributes>'
+        '<note><voice>1</voice><staff>1</staff>'
+        '<lyric number="1"><text>A</text></lyric>'
+        '<lyric number="2"><text>B</text></lyric></note>'
+        '</measure></part></score-partwise>';
+
+    DirectoryMusicFiles bucket(Map<String, String> files) {
+      final folder = Directory('${dir.path}/bucket');
+      for (final (path, w, h) in [
+        ('hymns/041-1.png', 1200, 900),
+        ('hymns/041-2.png', 1200, 500),
+        ('service-music/doxology-1.png', 1200, 700),
+      ]) {
+        File('${folder.path}/$path')
+          ..createSync(recursive: true)
+          ..writeAsBytesSync(fakePng(w, h));
+      }
+      files.forEach((path, text) {
+        File('${folder.path}/$path')
+          ..createSync(recursive: true)
+          ..writeAsStringSync(text);
+      });
+      folder.createSync(recursive: true);
+      return DirectoryMusicFiles(folder.path);
+    }
+
+    test('stores the file and its verse count for a published hymn', () async {
+      final notation = await readNotationFiles(
+        sampleWithNotation('hymn-1'),
+        bucket({'hymn-1/notation.mxl': score}),
+      );
+      expect(notation['hymn-1']!.verses, 2);
+      expect(utf8.decode(notation['hymn-1']!.mxl), score);
+    });
+
+    test('a hymn that is not in the book is not fetched', () async {
+      final notation = await readNotationFiles(
+        sampleWithNotation('hymn-gone'),
+        bucket({}),
+      );
+      expect(notation, isEmpty);
+    });
+
+    test('a file that is not MusicXML stops the build, naming it', () async {
+      expect(
+        readNotationFiles(
+          sampleWithNotation('hymn-1'),
+          bucket({'hymn-1/notation.mxl': 'not xml'}),
+        ),
+        throwsA(
+          isA<MusicFileException>().having(
+            (e) => e.path,
+            'path',
+            'hymn-1/notation.mxl',
+          ),
+        ),
+      );
+    });
+
+    test('without files there is no notation', () async {
+      expect(
+        await readNotationFiles(sampleWithNotation('hymn-1'), null),
+        isEmpty,
+      );
+    });
+
+    test('the built book carries the notation and counts it', () async {
+      final out = '${dir.path}/assets/content.db';
+      final summary = await buildContentDatabase(
+        sampleWithNotation('hymn-1'),
+        outPath: out,
+        builtAt: DateTime.utc(2026, 10, 31),
+        source: 'example.supabase.co',
+        musicFiles: bucket({'hymn-1/notation.mxl': score}),
+      );
+      expect(summary.notation, 1);
+    });
   });
 }

@@ -139,6 +139,34 @@ void main() {
     },
   );
 
+  test(
+    'replaces a copy from before drawn notation, keeping settings',
+    () async {
+      final book = await bundle(october);
+      await installer.ensureInstalled(
+        bundledBuiltAt: october,
+        loadBundle: () async => book,
+      );
+      await withPhoneDb((db) => UserData(db).saveSetting('theme', 'night'));
+      // The phone's copy as schema 4 built it: no hymn_notation table.
+      sqlite3.open(phonePath)
+        ..execute('DROP TABLE hymn_notation')
+        ..execute('PRAGMA user_version = 4')
+        ..close();
+
+      final outcome = await installer.ensureInstalled(
+        bundledBuiltAt: october,
+        loadBundle: () async => book,
+      );
+
+      expect(outcome, InstallOutcome.updated);
+      await withPhoneDb((db) async {
+        expect((await ContentCatalog(db).hymn('hymn-1'))!.notationVerses, 0);
+        expect(await UserData(db).settings(), {'theme': 'night'});
+      });
+    },
+  );
+
   test('replaces a damaged file', () async {
     File(phonePath).writeAsStringSync('this is not a database' * 100);
     final bytes = await bundle(october);

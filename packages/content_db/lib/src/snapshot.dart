@@ -90,6 +90,7 @@ class ImportSummary {
     required this.readings,
     required this.parts,
     required this.music,
+    required this.notation,
     required this.skipped,
   });
 
@@ -101,6 +102,9 @@ class ImportSummary {
 
   /// Pieces of sheet music bundled with the book.
   final int music;
+
+  /// Hymns with drawn notation.
+  final int notation;
   final int skipped;
 }
 
@@ -112,8 +116,10 @@ Future<ImportSummary> importSnapshot(
   ContentDatabase db,
   ContentSnapshot snapshot, {
   Map<String, ImageSize> musicSizes = const {},
+  Map<String, BundledNotation> notation = const {},
 }) {
   return db.transaction(() async {
+    await db.delete(db.hymnNotation).go();
     await db.delete(db.hymnMusic).go();
     await db.delete(db.hymnSections).go();
     await db.delete(db.hymns).go();
@@ -206,6 +212,15 @@ Future<ImportSummary> importSnapshot(
               height: size.height,
             ),
       ]);
+      b.insertAll(db.hymnNotation, [
+        for (final r in bundledNotation(snapshot))
+          if (notation[r['hymn_id']] case final n?)
+            HymnNotationCompanion.insert(
+              hymnId: r['hymn_id']! as String,
+              mxl: n.mxl,
+              verses: n.verses,
+            ),
+      ]);
       b.insertAll(db.readings, [
         for (final r in snapshot.readings)
           ReadingsCompanion.insert(
@@ -257,6 +272,9 @@ Future<ImportSummary> importSnapshot(
       music: bundledMusic(
         snapshot,
       ).where((r) => musicSizes.containsKey(r['id'])).length,
+      notation: bundledNotation(
+        snapshot,
+      ).where((r) => notation.containsKey(r['hymn_id'])).length,
       skipped:
           snapshot.hymns.length -
           hymns.length +
@@ -281,6 +299,26 @@ List<ApiRow> bundledMusic(ContentSnapshot snapshot) {
   return [
     for (final r in snapshot.music)
       if (r['kind'] == 'sheet_music_image' && hymnIds.contains(r['hymn_id'])) r,
+  ];
+}
+
+/// A hymn's notation file, as the content build fetched it, and its number of verses.
+class BundledNotation {
+  const BundledNotation(this.mxl, this.verses);
+  final Uint8List mxl;
+  final int verses;
+}
+
+/// The notation files to bundle: `musicxml` assets whose hymn is in the book.
+List<ApiRow> bundledNotation(ContentSnapshot snapshot) {
+  final hymnalIds = _ids(snapshot.hymnals);
+  final hymnIds = {
+    for (final r in snapshot.hymns)
+      if (hymnalIds.contains(r['hymnal_id'])) r['id'],
+  };
+  return [
+    for (final r in snapshot.music)
+      if (r['kind'] == 'musicxml' && hymnIds.contains(r['hymn_id'])) r,
   ];
 }
 

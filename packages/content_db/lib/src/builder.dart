@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
+import 'package:shared/shared.dart';
 
 import 'database.dart';
 import 'music_files.dart';
@@ -57,9 +58,15 @@ Future<ImportSummary> buildContentDatabase(
     musicDirFor(outPath),
     musicFiles,
   );
+  final notation = await readNotationFiles(snapshot, musicFiles);
   final db = ContentDatabase(NativeDatabase(out));
   try {
-    final summary = await importSnapshot(db, snapshot, musicSizes: sizes);
+    final summary = await importSnapshot(
+      db,
+      snapshot,
+      musicSizes: sizes,
+      notation: notation,
+    );
     await rebuildSearchIndex(db);
     await db
         .into(db.bundleInfo)
@@ -116,4 +123,31 @@ Future<Map<String, ImageSize>> writeMusicFiles(
     ]);
   }
   return sizes;
+}
+
+/// Reads the notation of the hymns [snapshot] bundles from [files], by hymn id. A file
+/// that isn't MusicXML stops the build. Without [files] there is none.
+Future<Map<String, BundledNotation>> readNotationFiles(
+  ContentSnapshot snapshot,
+  MusicFiles? files,
+) async {
+  final notation = <String, BundledNotation>{};
+  if (files == null) return notation;
+  for (final r in bundledNotation(snapshot)) {
+    final path = r['storage_path']! as String;
+    final bytes = await files.read(
+      r['storage_bucket'] as String? ?? 'sheet-music',
+      path,
+    );
+    try {
+      final facts = readNotationFacts(musicXmlFromFile(bytes));
+      notation[r['hymn_id']! as String] = BundledNotation(
+        bytes,
+        facts.verses.length,
+      );
+    } on NotationFileException catch (e) {
+      throw MusicFileException(path, 'not a MusicXML file: ${e.message}');
+    }
+  }
+  return notation;
 }
