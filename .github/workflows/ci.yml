@@ -71,8 +71,10 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+      # One phone type: the app now builds Verovio from source (packages/notation), and
+      # every extra type adds a full C++ build; arm64 is what members' phones run.
       - name: Build the Android app for the example church (catches Gradle breakage)
-        run: flutter build apk --debug --dart-define-from-file=../../churches/example/church.json
+        run: flutter build apk --debug --target-platform android-arm64 --dart-define-from-file=../../churches/example/church.json
         working-directory: apps/mobile
 
   backend:
