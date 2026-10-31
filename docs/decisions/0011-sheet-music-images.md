@@ -1,6 +1,6 @@
 # ADR 0011: Sheet music as page images bundled in the app
 
-**Status:** Accepted · **Date:** 2026-10-17 · **Amends:** [ARCHITECTURE](../ARCHITECTURE.md) (sheet music)
+**Status:** Accepted, amended by [ADR 0012](0012-drawn-notation-verovio.md) · **Date:** 2026-10-17 · **Amends:** [ARCHITECTURE](../ARCHITECTURE.md) (sheet music)
 
 ## Context
 The choir sings from the full-music edition of the church's hymn book: a scanned book of a few
