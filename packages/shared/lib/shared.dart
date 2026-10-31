@@ -4,3 +4,4 @@
 library;
 
 export 'src/enums.dart';
+export 'src/notation_file.dart';
