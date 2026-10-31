@@ -46,3 +46,7 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Church hymn files for the viewer (church content stays out of the public repo).
+/local/*
+!/local/.gitkeep
