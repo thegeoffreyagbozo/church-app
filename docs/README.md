@@ -34,5 +34,6 @@ are. Code can be read anywhere; the reasoning lives here.
 | [0009](./decisions/0009-reading-experience.md) | The reading experience: Hymnal style, one search bar, a bundled hymn book database | Accepted |
 | [0010](./decisions/0010-platform-tab-bars.md) | Each platform's own tab bar; Liquid Glass on iOS 26 waits for the iOS build | Accepted |
 | [0011](./decisions/0011-sheet-music-images.md) | Sheet music as page images cut from the choir book, bundled in the app | Accepted |
+| [0012](./decisions/0012-drawn-notation-verovio.md) | Drawn notation with Verovio; scanned pages become the fallback | Accepted |
 
 To add a decision: copy the format of any ADR, give it the next number, and add a row above.

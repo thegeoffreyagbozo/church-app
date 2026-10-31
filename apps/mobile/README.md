@@ -15,7 +15,9 @@ database built by `packages/content_db` and bundled as an asset.
 
    Without a Supabase project, use the public-domain sample instead:
    `--from-json packages/content_db/test/fixtures/sample_content.json`. The file is
-   git-ignored because it is church content.
+   git-ignored because it is church content. Notation files (drawn music, ADR 0012) go into
+   Supabase with the importer's `--notation` (`packages/content_import/README.md`); the
+   build bundles them into `content.db`, and the build line says how many hymns have it.
 2. Run with a church settings file (name, package ID and colours) and the
    environment config:
 
@@ -27,7 +29,9 @@ database built by `packages/content_db` and bundled as an asset.
 
 ## Build a church's Android app
 
-For a church with a folder in `churches/` (see `churches/README.md`), from `apps/mobile`:
+For a church with a folder in `churches/` (see `churches/README.md`), from `apps/mobile`.
+The app includes `packages/notation`, which builds Verovio from source with the Android NDK
+on the first build (several minutes per phone type).
 
 1. Build the hymn book from the church's content, as in "Run it".
 2. Make the launcher icons, the launch screen and the logo on Home
