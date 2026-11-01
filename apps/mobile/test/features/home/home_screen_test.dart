@@ -6,9 +6,10 @@ import 'package:church_app/core/widgets/item_row.dart';
 import 'package:church_app/features/home/presentation/home_screen.dart';
 import 'package:content_db/content_db.dart';
 import 'package:drift/drift.dart' show Value;
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
+import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../helpers/test_app.dart';
 import '../../helpers/text_lines.dart';
@@ -57,6 +58,10 @@ void main() {
   testWidgets('Find a hymn on the empty recent list opens the search', (
     tester,
   ) async {
+    // A phone's height, so the button sits on screen below the section rows.
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     await pumpApp(tester, db);
     final search = find.byType(EditableText);
     expect(tester.widget<EditableText>(search).focusNode.hasFocus, isFalse);
@@ -140,12 +145,34 @@ void main() {
     );
   });
 
+  testWidgets('shows the sections as rows that open a page', (tester) async {
+    await pumpApp(tester, db);
+
+    expect(onHome('BROWSE'), findsOneWidget);
+    final row = find.ancestor(
+      of: onHome('Service Music'),
+      matching: find.byType(InkWell),
+    );
+    expect(
+      find.descendant(
+        of: row.first,
+        matching: find.byIcon(LucideIcons.chevronRight),
+      ),
+      findsOneWidget,
+    );
+    // The rows run down the page rather than wrapping like chips.
+    final hymns = tester.getTopLeft(onHome('Hymns'));
+    final supplementary = tester.getTopLeft(onHome('Supplementary Hymns'));
+    expect(supplementary.dx, hymns.dx);
+    expect(supplementary.dy, greaterThan(hymns.dy));
+  });
+
   testWidgets(
     'lists the main hymns first, then other numbered sections, then the rest',
     (tester) async {
       await pumpApp(tester, db);
 
-      /// Whether chip [a] comes before chip [b] in reading order.
+      /// Whether row [a] comes before row [b] in reading order.
       bool before(Offset a, Offset b) =>
           a.dy < b.dy || (a.dy == b.dy && a.dx < b.dx);
       final hymns = tester.getTopLeft(onHome('Hymns'));

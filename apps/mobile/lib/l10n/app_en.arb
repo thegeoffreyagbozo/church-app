@@ -24,6 +24,7 @@
   "@missingReading": {"placeholders": {"number": {"type": "int"}, "lowest": {"type": "int"}, "highest": {"type": "int"}}},
   "noMatches": "Nothing matches “{query}”. Try another spelling, or a hymn number.",
   "@noMatches": {"placeholders": {"query": {"type": "String"}}},
+  "browse": "Browse",
   "recentlyOpened": "Recently opened",
   "recentEmptyTitle": "Nothing opened yet",
   "recentEmpty": "Hymns and readings you open will appear here, newest first.",
