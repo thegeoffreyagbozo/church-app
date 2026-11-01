@@ -167,6 +167,22 @@ void main() {
     expect(supplementary.dy, greaterThan(hymns.dy));
   });
 
+  testWidgets('says under each section what it holds', (tester) async {
+    await pumpApp(tester, db);
+    await tester.pumpAndSettle();
+
+    // A numbered section gives its numbers; an unnumbered one names its first pieces.
+    expect(onHome('Hymns 1 to 41'), findsOneWidget);
+    expect(onHome('Hymns 1 to 2'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(HomeScreen),
+        matching: find.textContaining('Doxology'),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets(
     'lists the main hymns first, then other numbered sections, then the rest',
     (tester) async {

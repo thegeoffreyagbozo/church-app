@@ -13,6 +13,7 @@ import '../../../core/widgets/digit_row.dart';
 import '../../../core/widgets/item_row.dart';
 import '../../../core/widgets/keyboard_visibility.dart';
 import '../../../core/widgets/page_width.dart';
+import '../../hymnal/data/hymnal_providers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../search/data/search_providers.dart';
 import '../../search/presentation/search_field.dart';
@@ -198,7 +199,13 @@ class _SectionRows extends ConsumerWidget {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(section.name, style: theme.text.listTitle),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(section.name, style: theme.text.listTitle),
+                        _SectionHint(section: section),
+                      ],
+                    ),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(left: 12, right: 4),
@@ -220,6 +227,41 @@ class _SectionRows extends ConsumerWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// One line on what [section] holds, from the content itself: its numbers ("Hymns 1 to
+/// 571"), or for unnumbered pieces the first few titles.
+class _SectionHint extends ConsumerWidget {
+  const _SectionHint({required this.section});
+
+  final Section section;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = HymnalTheme.of(context);
+    final String? hint;
+    if (section.lowestNumber case final lowest?
+        when section.highestNumber != null) {
+      hint = AppLocalizations.of(
+        context,
+      ).sectionRange(lowest, section.highestNumber!);
+    } else {
+      final hymns = ref.watch(sectionHymnsProvider(section.id)).value;
+      hint = hymns == null || hymns.isEmpty
+          ? null
+          : hymns.take(3).map((h) => h.title).join(', ');
+    }
+    if (hint == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Text(
+        hint,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: theme.text.listSubtitle,
+      ),
     );
   }
 }
