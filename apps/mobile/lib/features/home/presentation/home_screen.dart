@@ -13,6 +13,7 @@ import '../../../core/widgets/digit_row.dart';
 import '../../../core/widgets/item_row.dart';
 import '../../../core/widgets/keyboard_visibility.dart';
 import '../../../core/widgets/page_width.dart';
+import '../../hymnal/data/hymnal_providers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../search/data/search_providers.dart';
 import '../../search/presentation/search_field.dart';
@@ -94,7 +95,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   SearchResultsView(onOpen: _openHit)
                 else ...[
                   const SizedBox(height: 18),
-                  _SectionChips(onOpen: (id) => context.go(sectionPath(id))),
+                  _SectionRows(onOpen: (id) => context.go(sectionPath(id))),
                   const SizedBox(height: 26),
                   _RecentList(onOpen: _open, onFindHymn: _focus.requestFocus),
                 ],
@@ -161,14 +162,17 @@ class _ChurchHeader extends ConsumerWidget {
   }
 }
 
-class _SectionChips extends ConsumerWidget {
-  const _SectionChips({required this.onOpen});
+/// The sections as full-width rows with a count and a chevron, under a "Browse" label,
+/// so they read as pages to open rather than filters on the search.
+class _SectionRows extends ConsumerWidget {
+  const _SectionRows({required this.onOpen});
 
   final ValueChanged<String> onOpen;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = HymnalTheme.of(context);
+    final l10n = AppLocalizations.of(context);
     final all = ref.watch(sectionsProvider).value ?? const <Section>[];
     // The main series first, then the other numbered series, then unnumbered pieces
     // such as service music; each group in book order.
@@ -177,35 +181,87 @@ class _SectionChips extends ConsumerWidget {
       ...all.where((s) => !s.isDefault && s.isNumbered),
       ...all.where((s) => !s.isDefault && !s.isNumbered),
     ];
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+    if (sections.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Text(l10n.browse.toUpperCase(), style: theme.text.listLabel),
+        const SizedBox(height: 4),
         for (final section in sections)
-          // A plain pill rather than a Chip, so a long name wraps at large text sizes.
-          Material(
-            color: theme.palette.background,
-            shape: StadiumBorder(side: BorderSide(color: theme.palette.rule)),
-            child: InkWell(
-              customBorder: const StadiumBorder(),
-              onTap: () => onOpen(section.id),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 48),
-                child: Align(
-                  widthFactor: 1,
-                  heightFactor: 1,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
+          InkWell(
+            onTap: () => onOpen(section.id),
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 56),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: theme.palette.rule)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(section.name, style: theme.text.listTitle),
+                        _SectionHint(section: section),
+                      ],
                     ),
-                    child: Text(section.name, style: theme.text.body),
                   ),
-                ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12, right: 4),
+                    child: Text(
+                      '${section.count}',
+                      style: theme.text.listSubtitle,
+                    ),
+                  ),
+                  // Decoration: the row's tap says it opens.
+                  ExcludeSemantics(
+                    child: Icon(
+                      LucideIcons.chevronRight,
+                      size: 20,
+                      color: theme.palette.muted,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
       ],
+    );
+  }
+}
+
+/// One line on what [section] holds, from the content itself: its numbers ("Hymns 1 to
+/// 571"), or for unnumbered pieces the first few titles.
+class _SectionHint extends ConsumerWidget {
+  const _SectionHint({required this.section});
+
+  final Section section;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = HymnalTheme.of(context);
+    final String? hint;
+    if (section.lowestNumber case final lowest?
+        when section.highestNumber != null) {
+      hint = AppLocalizations.of(
+        context,
+      ).sectionRange(lowest, section.highestNumber!);
+    } else {
+      final hymns = ref.watch(sectionHymnsProvider(section.id)).value;
+      hint = hymns == null || hymns.isEmpty
+          ? null
+          : hymns.take(3).map((h) => h.title).join(', ');
+    }
+    if (hint == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Text(
+        hint,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: theme.text.listSubtitle,
+      ),
     );
   }
 }
